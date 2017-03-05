@@ -17,8 +17,8 @@ public class TickCountTracker {
 
     protected int leftTicks;
     protected int rightTicks;
-    protected Vector2d coordinate;
-    protected double dirRad;
+    public Vector2d coordinate;
+    public double dirRad;
 
     public TickCountTracker() {
         this.leftTicks = 0;
@@ -35,6 +35,12 @@ public class TickCountTracker {
         return String.format("%s-> %.08fd", this.coordinate.formatAsString(), Math.toDegrees(this.dirRad));
     }
 
+    public void  initialize(final SimpleCoordinateTracker sctrack, int left, int right){
+        this.leftTicks = left;
+        this.rightTicks = right;
+        this.dirRad = sctrack.direction;
+        this.coordinate.set(sctrack.coordinate);
+    }
     public void initializeRad(double xin, double yin, double ccwDirRad, int left, int right) {
         this.leftTicks = left;
         this.rightTicks = right;

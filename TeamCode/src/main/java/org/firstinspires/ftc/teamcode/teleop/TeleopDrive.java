@@ -5,8 +5,10 @@ import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 
 import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
+import org.firstinspires.ftc.teamcode.sensors.EvaluateColorSensor;
 
 /**
  * Created by Connor on 1/28/2017.
@@ -18,11 +20,12 @@ import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
     public class TeleopDrive extends LinearOpMode {
     // Use a Pushbot's hardware
     ModernRoboticsI2cGyro gyro = null;
-
+    ColorSensor sensorRGB;
     @Override
     public void runOpMode() throws InterruptedException {
         ROUSAutoHardware_WithServos robot = new ROUSAutoHardware_WithServos();
         gyro = (ModernRoboticsI2cGyro) hardwareMap.gyroSensor.get("gyro");
+
         double Left;
         double Right;
         double IntakeOut; // intake motor spinning out --->(reverse intake)
@@ -30,7 +33,10 @@ import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
         //double ServoFlipper = 0.8; //equals bottom
         // double ServoButtonPusher = 0.0; //equals in position
         // boolean AButtonPreviousState = false;
-
+        double UP = .3;
+        double DOWN = .9;
+        double IN = .65;
+        double OUT = .9;
         // double Aim;
 
 
@@ -38,8 +44,8 @@ import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
          * The init() method of the hardware class does all the work here
          */
         robot.init(hardwareMap);
-        robot.button.setPosition(.56);
-        robot.servo.setPosition(.9);
+        robot.button.setPosition(IN);
+        robot.servo.setPosition(DOWN);
         sleep(1000);
         robot.leftshooter.setPower(0);
         robot.rightshooter.setPower(0);
@@ -111,15 +117,17 @@ import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
             //Button Press
 
             if (gamepad2.a) {
-                robot.button.setPosition(.79);
+                robot.button.setPosition(OUT);
             } else {
-                robot.button.setPosition(.57);
+                robot.button.setPosition(IN);
+                telemetry.addData("Color Evaluate", EvaluateColorSensor.Evaluate(sensorRGB));
+                telemetry.update();
 
                 if (gamepad2.left_bumper) {
                    // robot.leftshooter.setPower(-1);
                    // robot.rightshooter.setPower(1);
                     //sleep(3000);
-                    robot.servo.setPosition(.3);
+                    robot.servo.setPosition(UP);
                     //sleep(2000);
                     //robot.servo.setPosition(.9);
                     //robot.leftshooter.setPower(0);
@@ -136,7 +144,7 @@ import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
                             robot.leftshooter.setPower(-1);
                             robot.rightshooter.setPower(1);
                             sleep(1000);
-                            robot.servo.setPosition(.3);
+                            robot.servo.setPosition(UP);
                             sleep(2000);
                             robot.leftshooter.setPower(0);
                             robot.rightshooter.setPower(0);
@@ -144,7 +152,7 @@ import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
                         }
                     }else{
 
-                        robot.servo.setPosition(.9);
+                        robot.servo.setPosition(DOWN);
                     }
                 }
                 if (gamepad2.x){

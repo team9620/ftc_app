@@ -11,6 +11,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.teamcode.fieldtracking.SimpleCoordinateTracker;
+import org.firstinspires.ftc.teamcode.fieldtracking.TickCountTracker;
 import org.firstinspires.ftc.teamcode.fieldtracking.TurnCalc;
 
 
@@ -57,10 +59,14 @@ public class DriveCommands {
     static double odsReadingLinear;
     static double odsReadingLinear2;
 
+    public LinearOpMode opMode   = null;
+    public TickCountTracker tcTrack = null;
+    public SimpleCoordinateTracker scTracker = null;
+
     /**
      * Initialize EncoderDrive for Op Mode.
      */
-    public void initializeForOpMode(LinearOpMode opMode, HardwareMap hwMap) throws InterruptedException {
+    public void initializeForOpMode(LinearOpMode opModeIn, HardwareMap hwMap, TickCountTracker tcTrackIn, SimpleCoordinateTracker scTrackerIn) throws InterruptedException {
 
         /**
          * Send telemetry message to signify robot waiting;
@@ -69,6 +75,10 @@ public class DriveCommands {
         opMode.telemetry.update();
 
         // Define and Initialize Motors
+        opMode = opModeIn;
+        tcTrack = tcTrackIn;
+        scTracker = scTrackerIn;
+
         leftMotor       = hwMap.dcMotor.get(tag_left_wheel);
         rightMotor      = hwMap.dcMotor.get(tag_right_wheel);
         leftshooter     = hwMap.dcMotor.get(tag_left_shooter);
@@ -108,7 +118,10 @@ public class DriveCommands {
         // Ensure the robot it stationary, then reset the encoders and calibrate the gyro.
         leftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         rightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+       int encoderLeft = leftMotor.getCurrentPosition();
+       int encoderRight = rightMotor.getCurrentPosition();
         opMode.idle();
+        tcTrack.initialize(scTracker, encoderLeft, encoderRight );
 
         /** Send telemetry message to indicate successful Encoder reset */
         opMode.telemetry.addData("Path0", "Starting at %7d :%7d",
@@ -116,7 +129,7 @@ public class DriveCommands {
                 rightMotor.getCurrentPosition());
     }
 
-    public void Drive(LinearOpMode opMode, double speed,
+    public void Drive(double speed,
                       double leftInches, double rightInches,
                       double timeoutS) throws InterruptedException {
         int newLeftTarget;
@@ -157,7 +170,7 @@ public class DriveCommands {
                 //opMode. telemetry.addData("Blue ", sensorRGB.blue());
                 opMode.telemetry.update();
 
-
+                tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
                 // Allow time for other processes to run.
                 opMode.idle();
             }
@@ -170,12 +183,13 @@ public class DriveCommands {
             leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-
+            scTracker.moveOnCurentHeading(leftInches);
+            scTracker.setPositionAndDirectionRad(tcTrack.coordinate, tcTrack.dirRad);
             opMode.sleep(Pause_Time);   // optional pause after each move
         }
     }
 
-    public void TurnRight(LinearOpMode opMode, double speed,
+    public void TurnRight(double speed,
                           float turndeg,
                           double timeoutS) throws InterruptedException {
         int newLeftTarget;
@@ -199,6 +213,7 @@ public class DriveCommands {
             leftMotor.setPower(Math.abs(speed));
             rightMotor.setPower(Math.abs(speed));
 
+
             // keep looping while we are still active, and there is time left, and both motors are running.
             while (opMode.opModeIsActive() &&
                     (runtime.seconds() < timeoutS) &&
@@ -212,6 +227,7 @@ public class DriveCommands {
                 opMode.telemetry.addData(">", "Robot Heading = %d", gyro.getIntegratedZValue());
 
                 opMode.telemetry.update();
+                tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
 
 
                 // Allow time for other processes to run.
@@ -225,13 +241,14 @@ public class DriveCommands {
             // Turn off RUN_TO_POSITION
             leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
+            scTracker.moveOnCurentHeading(turndeg);
+            scTracker.setPositionAndDirectionRad(tcTrack.coordinate, tcTrack.dirRad);
 
             opMode.sleep(Pause_Time);   // optional pause after each move
         }
     }
 
-    public void TurnLeft(LinearOpMode opMode, double speed,
+    public void TurnLeft(double speed,
                          float turndeg,
                          double timeoutS) throws InterruptedException {
         int newLeftTarget;
@@ -267,7 +284,7 @@ public class DriveCommands {
                         rightMotor.getCurrentPosition());
                 opMode.telemetry.addData(">", "Robot Heading = %d", gyro.getIntegratedZValue());
                 opMode.telemetry.update();
-
+                tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
 
                 // Allow time for other processes to run.
                 opMode.idle();
@@ -280,7 +297,8 @@ public class DriveCommands {
             // Turn off RUN_TO_POSITION
             leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
+            scTracker.moveOnCurentHeading(turndeg);
+            scTracker.setPositionAndDirectionRad(tcTrack.coordinate, tcTrack.dirRad);
             opMode.sleep(Pause_Time);   // optional pause after each move
         }
     }
@@ -297,7 +315,7 @@ public class DriveCommands {
      *                 0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
      *                 If a relative angle is required, add/subtract from current heading.
      */
-    public void gyroDrive(LinearOpMode opMode, double speed,
+    public void gyroDrive(double speed,
                           double distance,
                           double angle) {
 
@@ -347,13 +365,13 @@ public class DriveCommands {
 
                 // Normalize speeds if any one exceeds +/- 1.0;
                 max = Math.max(Math.abs(leftSpeed), Math.abs(rightSpeed));
-                if (max > 1) {
+                if (max > .3) {
                     leftSpeed /= max;
                     rightSpeed /= max;
                 }
 
-                leftMotor.setPower(leftSpeed);
-                rightMotor.setPower(rightSpeed);
+                leftMotor.setPower(TurnCalc.OffL(gyro.getIntegratedZValue(), angle));
+                rightMotor.setPower(TurnCalc.OffR(gyro.getIntegratedZValue(), angle));
 
                 // Display drive status for the driver.
                 opMode.telemetry.addData("Err/St", "%5.1f/%5.1f", error, steer);
@@ -363,6 +381,7 @@ public class DriveCommands {
                 opMode.telemetry.addData("Speed", "%5.2f:%5.2f", leftSpeed, rightSpeed);
                 opMode.telemetry.addData(">", "Robot Heading = %d", gyro.getIntegratedZValue());
                 opMode.telemetry.update();
+                tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
             }
 
             // Stop all motion;
@@ -372,7 +391,8 @@ public class DriveCommands {
             // Turn off RUN_TO_POSITION
             leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
+            scTracker.moveOnCurentHeading(distance);
+            scTracker.setPositionAndDirectionRad(tcTrack.coordinate, tcTrack.dirRad);
             opMode.sleep(Pause_Time);
         }
     }
@@ -388,12 +408,12 @@ public class DriveCommands {
      *              0 = fwd. +ve is CCW from fwd. -ve is CW from forward.
      *              If a relative angle is required, add/subtract from current heading.
      */
-    public void gyroTurn(LinearOpMode opMode, double speed, double angle) {
+    public void gyroTurn( double speed, double angle) {
 
 
         // keep looping while we have time remaining.
         // keep looping while we are still active, and not on heading.
-        while (opMode.opModeIsActive() && !onHeading(opMode, speed, angle)) {
+        while (opMode.opModeIsActive() && !onHeading(speed, angle)) {
             // Update telemetry & Allow time for other processes to run.
             opMode.telemetry.addData(">", "Robot Heading = %d", gyro.getIntegratedZValue());
             opMode.telemetry.update();
@@ -411,7 +431,7 @@ public class DriveCommands {
      *                   If a relative angle is required, add/subtract from current heading.
      * @param //holdTime Length of time (in seconds) to hold the specified heading.
      */
-    boolean onHeading(LinearOpMode opMode, double speed, double angle) {
+    boolean onHeading(double speed, double angle) {
 
         boolean onTarget = false;
         // determine turn power based on +/- error
@@ -422,6 +442,7 @@ public class DriveCommands {
             rightMotor.setPower(0);
             leftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             rightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
             opMode.sleep(500);
             onTarget = true;
         } else {
@@ -430,6 +451,7 @@ public class DriveCommands {
                 rightMotor.setPower(0);
                 leftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 rightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
                 opMode.sleep(500);
                 onTarget = true;
             }
@@ -438,12 +460,14 @@ public class DriveCommands {
                 rightMotor.setPower(0);
                 leftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 rightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
                 opMode.sleep(500);
                 onTarget = true;
             }
             if (gyro.getIntegratedZValue() - angle >= 2) {
                 rightMotor.setPower(-speed);
                 leftMotor.setPower(speed);
+                tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
 
 
             } else {
@@ -451,17 +475,19 @@ public class DriveCommands {
 
                     rightMotor.setPower(speed);
                     leftMotor.setPower(-speed);
+                    tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
                 }
             }
 
         }
-
+        scTracker.moveOnCurentHeading(angle);
+        scTracker.setPositionAndDirectionRad(tcTrack.coordinate, tcTrack.dirRad);
         opMode.sleep(Pause_Time);
         return onTarget;
 
     }
 
-    public void OdsDrive(LinearOpMode opMode, double dist, double timeoutS) {
+    public void OdsDrive(double dist, double timeoutS) {
         int newLeftTarget;
         int newRightTarget;
 
@@ -505,6 +531,7 @@ public class DriveCommands {
                 opMode.telemetry.update();
                 leftMotor.setPower(TurnCalc.WallDistL(odsReadingLinear));
                 rightMotor.setPower(TurnCalc.WallDistR(odsReadingLinear));
+                tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
 
 
                 // Allow time for other processes to run.
@@ -518,14 +545,15 @@ public class DriveCommands {
             // Turn off RUN_TO_POSITION
             leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
+            scTracker.moveOnCurentHeading(dist);
+            scTracker.setPositionAndDirectionRad(tcTrack.coordinate, tcTrack.dirRad);
 
             opMode.sleep(Pause_Time);
 
 
         }
     }
-    public void OdsDriveRev(LinearOpMode opMode, double dist, double timeoutS) {
+    public void OdsDriveRev(double dist, double timeoutS) {
         int newLeftTarget;
         int newRightTarget;
 
@@ -569,6 +597,7 @@ public class DriveCommands {
                 opMode.telemetry.update();
                 leftMotor.setPower(TurnCalc.WallDistL(-odsReadingLinear));
                 rightMotor.setPower(TurnCalc.WallDistR(-odsReadingLinear));
+                tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
 
 
                 // Allow time for other processes to run.
@@ -582,14 +611,15 @@ public class DriveCommands {
             // Turn off RUN_TO_POSITION
             leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
+            scTracker.moveOnCurentHeading(dist);
+            scTracker.setPositionAndDirectionRad(tcTrack.coordinate, tcTrack.dirRad);
             opMode.sleep(Pause_Time);
 
 
         }
     }
 
-    public void Shoot(LinearOpMode opMode, double up, double down) {
+    public void Shoot(double up, double down) {
         leftshooter.setPower(-1);
         rightshooter.setPower(1);
         opMode.sleep(1000);
@@ -617,10 +647,10 @@ public class DriveCommands {
         opMode.sleep(Pause_Time);
 
     }
-    public void BeaconEvalBlue(LinearOpMode opMode,boolean Blue,boolean Red,double IN, double Out){
+    public void BeaconEvalBlue(boolean Blue,boolean Red,double IN, double Out){
         if (Blue) {
             opMode.sleep(1000);
-            OdsDrive(opMode, 5, 100);
+            OdsDrive(5, 100);
             opMode.telemetry.addData("Color", "BLUE");
             opMode.telemetry.addData("Red  ", sensorRGB.red());
             opMode.telemetry.addData("Blue  ", sensorRGB.blue());
@@ -642,7 +672,7 @@ public class DriveCommands {
 //
                       } else if (Red) {
             opMode.sleep(1000);
-            OdsDrive(opMode, 6, 100);
+            OdsDrive(6, 100);
             opMode.telemetry.addData("Color", "RED");
             opMode.telemetry.addData("Red  ", sensorRGB.red());
             opMode.telemetry.addData("Blue  ", sensorRGB.blue());

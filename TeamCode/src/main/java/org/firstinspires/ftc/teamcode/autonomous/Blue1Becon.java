@@ -16,6 +16,9 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.drivetrain.DriveCommands;
 import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
+import org.firstinspires.ftc.teamcode.fieldtracking.Field;
+import org.firstinspires.ftc.teamcode.fieldtracking.SimpleCoordinateTracker;
+import org.firstinspires.ftc.teamcode.fieldtracking.TickCountTracker;
 import org.firstinspires.ftc.teamcode.sensors.EvaluateColorSensor;
 import org.firstinspires.ftc.teamcode.sensors.eColorState;
 
@@ -62,7 +65,7 @@ public class Blue1Becon extends LinearOpMode {
 
     static final double UP = .3;
     static final double DOWN = .9;
-    static final double IN = .65;
+    static final double IN = .3;
     static final double OUT = .9;
 
     double odsReadingRaw;
@@ -73,6 +76,8 @@ public class Blue1Becon extends LinearOpMode {
     static double odsReadingLinear;
     static double odsReadingLinear2;
 
+    public TickCountTracker tcTrack = null;
+    public SimpleCoordinateTracker scTracker = null;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -196,8 +201,13 @@ public class Blue1Becon extends LinearOpMode {
 
             sleep(Pause_Time_int);
 
+            scTracker = new SimpleCoordinateTracker();
+            scTracker.setPositionAndDirectionDeg(Field.POSITION1, 180.0);
+            tcTrack = new TickCountTracker();
+            tcTrack.initialize(scTracker, 0,0);
+
             DriveCommands Command = new DriveCommands();
-            Command.initializeForOpMode(this, hardwareMap);
+            Command.initializeForOpMode(this,hardwareMap, tcTrack,scTracker);
 
             telemetry.addData(">","Activating ODS");
             telemetry.update();
@@ -297,20 +307,20 @@ public class Blue1Becon extends LinearOpMode {
 
             sleep(Pause_Time);
 
-            Command.gyroTurn(this,TURN_SPEED, 0);
-            Command.Drive(this, DRIVE_SPEED2, 10, 10, 100);
-            Command.gyroTurn(this,TURN_SPEED, -12);
-            Command.Shoot(this, UP, DOWN);
-            Command.Drive(this, DRIVE_SPEED2, .5,.5,10);
-            Command.gyroTurn(this,TURN_SPEED, -60);
-            Command.Drive(this, DRIVE_SPEED, 44, 44, 100);
-            Command.gyroTurn(this,TURN_SPEED, -65);
-            Command.Drive(this, DRIVE_SPEED, 20, 20, 100);
-            Command.gyroTurn(this,TURN_SPEED, -75);
-            Command.Drive(this, DRIVE_SPEED, 10, 10, 100);
-            Command.gyroTurn(this,TURN_SPEED, 0);
-            Command.OdsDrive(this, 20, 20);
-            Command.Drive(this, DRIVE_SPEED, -25, -25, 10);
+            Command.gyroTurn(TURN_SPEED, 0);
+            Command.Drive(DRIVE_SPEED2, 10, 10, 100);
+            Command.gyroTurn(TURN_SPEED, -12);
+            Command.Shoot(UP, DOWN);
+            Command.Drive(DRIVE_SPEED2, .5,.5,10);
+            Command.gyroTurn(TURN_SPEED, -60);
+            Command.Drive(DRIVE_SPEED, 44, 44, 100);
+            Command.gyroTurn(TURN_SPEED, -65);
+            Command.Drive(DRIVE_SPEED, 20, 20, 100);
+            Command.gyroTurn(TURN_SPEED, -75);
+            Command.Drive(DRIVE_SPEED, 10, 10, 100);
+            Command.gyroTurn(TURN_SPEED, 0);
+            Command.OdsDrive(20, 20);
+            Command.Drive(DRIVE_SPEED, -25, -25, 10);
 
             sleep(Pause_Time);
 
@@ -321,7 +331,7 @@ public class Blue1Becon extends LinearOpMode {
 
             sleep(Pause_Time);
 
-            Command.BeaconEvalBlue(this, Blue, Red, IN, OUT);
+            Command.BeaconEvalBlue(Blue, Red, IN, OUT);
             }
         }
 

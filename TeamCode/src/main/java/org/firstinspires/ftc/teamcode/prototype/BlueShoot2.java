@@ -6,6 +6,7 @@ import android.view.View;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -21,7 +22,7 @@ import org.firstinspires.ftc.teamcode.fieldtracking.TurnCalc;
  * Created by Connor on 2/9/2017.
  */
 @Autonomous(name="AutoShoot2BlueP2", group="Pushbot")
-//@Disabled
+@Disabled
 public class BlueShoot2 extends LinearOpMode {
     /* Declare OpMode members. */
     ROUSAutoHardware_WithServos robot = new ROUSAutoHardware_WithServos();   // Use a Pushbot's hardware

@@ -32,6 +32,7 @@ package org.firstinspires.ftc.teamcode.prototype;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -73,7 +74,7 @@ import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
  */
 
 @Autonomous(name="Gyro Drive simple test", group="Pushbot")
-//@Disabled
+@Disabled
 public class TestGyro extends LinearOpMode {
 
     /* Declare OpMode members. */

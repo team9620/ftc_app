@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.prototype;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -12,7 +13,7 @@ import org.firstinspires.ftc.teamcode.fieldtracking.Tracker;
  */
 
 @TeleOp(name = "SarahsVuForia", group = "Pushbot")
-//@Disabled
+@Disabled
 public class SarahsFirstOp extends LinearOpMode {
     // Use a Pushbot's hardware
 
