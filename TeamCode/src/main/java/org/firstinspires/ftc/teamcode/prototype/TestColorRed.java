@@ -6,6 +6,7 @@ import android.view.View;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -16,6 +17,9 @@ import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.drivetrain.DriveCommands;
 import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
+import org.firstinspires.ftc.teamcode.fieldtracking.Field;
+import org.firstinspires.ftc.teamcode.fieldtracking.SimpleCoordinateTracker;
+import org.firstinspires.ftc.teamcode.fieldtracking.TickCountTracker;
 import org.firstinspires.ftc.teamcode.fieldtracking.TurnCalc;
 import org.firstinspires.ftc.teamcode.sensors.EvaluateColorSensor;
 import org.firstinspires.ftc.teamcode.sensors.eColorState;
@@ -24,7 +28,7 @@ import org.firstinspires.ftc.teamcode.sensors.eColorState;
  * Created by Connor on 2/15/2017.
  */
 @Autonomous(name="AutoBeaconBlue", group="Pushbot")
-//@Disabled
+@Disabled
 public class TestColorRed extends LinearOpMode {
     ROUSAutoHardware_WithServos robot = new ROUSAutoHardware_WithServos();   // Use a Pushbot's hardware
     ModernRoboticsI2cGyro gyro = null;                    // Additional Gyro device
@@ -53,11 +57,18 @@ public class TestColorRed extends LinearOpMode {
 
     static final double UP = .95;
     static final double DOWN = .75;
+    public TickCountTracker tcTrack = null;
+    public SimpleCoordinateTracker scTracker = null;
 
     @Override
     public void runOpMode() throws InterruptedException {
+        scTracker = new SimpleCoordinateTracker();
+        scTracker.setPositionAndDirectionDeg(Field.POSITION1, 180.0);
+        tcTrack = new TickCountTracker();
+        tcTrack.initialize(scTracker, 0,0);
+
         DriveCommands Command = new DriveCommands();
-        Command.initializeForOpMode(this, hardwareMap);
+        Command.initializeForOpMode(this,hardwareMap, tcTrack,scTracker);
         gyro = (ModernRoboticsI2cGyro) hardwareMap.gyroSensor.get("gyro");
 
         telemetry.addData(">", "Calibrating Gyro");    //

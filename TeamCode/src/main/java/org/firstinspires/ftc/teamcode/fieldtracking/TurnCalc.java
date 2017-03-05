@@ -5,8 +5,8 @@ public class TurnCalc {
     private static final double WheelSpace = 14.5;
     private static final float Pi = 3.1415926f;
     private static final double Equation = ((WheelSpace)/2) * (2*Pi);
-    private static final double Closex1 = 2;
-    private static final double Farx2 = 3.5;
+    private static final double Closex1 = 3;
+    private static final double Farx2 = 4.5;
     private static final double Y1= .2; //.25 is max speed before it starts to go haywire
     private static final double Y2= 0;  //.05 is max speed before it starts to go haywire
     private static final double m1 = (Y2 - Y1)/(Farx2-Closex1);

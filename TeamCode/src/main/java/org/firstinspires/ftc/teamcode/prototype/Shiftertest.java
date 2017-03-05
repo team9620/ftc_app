@@ -32,6 +32,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 package org.firstinspires.ftc.teamcode.prototype;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -39,7 +40,7 @@ import org.firstinspires.ftc.teamcode.prototype.DriveForKidsHardware;
 
 
 @TeleOp(name="Shifter test", group="Robot")
-//@Disabled
+@Disabled
 public class Shiftertest extends LinearOpMode {
 
     /* Declare OpMode members. */

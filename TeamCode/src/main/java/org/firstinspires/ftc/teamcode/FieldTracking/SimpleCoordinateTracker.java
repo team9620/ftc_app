@@ -37,13 +37,26 @@ public class SimpleCoordinateTracker {
         return setPosition(vec.x,vec.y);
     }
 
-    public SimpleCoordinateTracker setDirection(double ccwAngle){
+    public SimpleCoordinateTracker setDirectionRad(double ccwAngle){
         this.direction = ccwAngle;
         return this;
     }
 
-    public SimpleCoordinateTracker setPositionAndDirection(double x, double y, double ccwAngle){
-        return setDirection(ccwAngle).setPosition(x,y);
+    public SimpleCoordinateTracker setDirectionDeg(double ccwAngle){
+        this.direction = Math.toRadians(ccwAngle);
+        return this;
+    }
+
+    public SimpleCoordinateTracker setPositionAndDirectionDeg(double x, double y, double ccwAngle){
+        return setDirectionDeg(ccwAngle).setPosition(x,y);
+    }
+
+    public SimpleCoordinateTracker setPositionAndDirectionDeg(final Vector2d vec, double ccwAngle){
+        return setDirectionDeg(ccwAngle).setPosition(vec);
+    }
+
+    public SimpleCoordinateTracker setPositionAndDirectionRad(final Vector2d vec, double ccwAngle){
+        return setDirectionRad(ccwAngle).setPosition(vec);
     }
 
     public SimpleCoordinateTracker shiftPositionByXY(double x, double y){

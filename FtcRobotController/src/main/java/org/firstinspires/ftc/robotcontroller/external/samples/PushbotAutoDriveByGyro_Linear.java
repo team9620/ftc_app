@@ -72,7 +72,7 @@ import com.qualcomm.robotcore.util.Range;
  */
 
 @Autonomous(name="Drive By Gyro By FIRST", group="Pushbot")
-//@Disabled
+@Disabled
 public class PushbotAutoDriveByGyro_Linear extends LinearOpMode {
 
     /* Declare OpMode members. */

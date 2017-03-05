@@ -5,8 +5,12 @@ import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 
 import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
+import org.firstinspires.ftc.teamcode.fieldtracking.TurnCalc;
+import org.firstinspires.ftc.teamcode.sensors.EvaluateColorSensor;
 
 /**
  * Created by Connor on 1/28/2017.
@@ -18,11 +22,19 @@ import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
 public class Telop1Driver extends LinearOpMode {
     // Use a Pushbot's hardware
     ModernRoboticsI2cGyro gyro = null;
+    ColorSensor sensorRGB;
+    OpticalDistanceSensor ODS;
+
+    double odsReadingRaw;
+    static double odsReadingLinear;
 
     @Override
     public void runOpMode() throws InterruptedException {
         ROUSAutoHardware_WithServos robot = new ROUSAutoHardware_WithServos();
         gyro = (ModernRoboticsI2cGyro) hardwareMap.gyroSensor.get("gyro");
+        sensorRGB = hardwareMap.colorSensor.get("color");
+        ODS = hardwareMap.opticalDistanceSensor.get("ods");
+
         double Left;
         double Right;
         double IntakeOut; // intake motor spinning out --->(reverse intake)
@@ -30,6 +42,11 @@ public class Telop1Driver extends LinearOpMode {
         //double ServoFlipper = 0.8; //equals bottom
         // double ServoButtonPusher = 0.0; //equals in position
         // boolean AButtonPreviousState = false;
+        double UP = .3;
+        double DOWN = .9;
+        double IN = .46;
+        double OUT = .9;
+
 
         // double Aim;
 
@@ -38,8 +55,8 @@ public class Telop1Driver extends LinearOpMode {
          * The init() method of the hardware class does all the work here
          */
         robot.init(hardwareMap);
-        robot.button.setPosition(.56);
-        robot.servo.setPosition(.9);
+        robot.button.setPosition(IN);
+        robot.servo.setPosition(DOWN);
         sleep(1000);
         robot.leftshooter.setPower(0);
         robot.rightshooter.setPower(0);
@@ -80,46 +97,54 @@ public class Telop1Driver extends LinearOpMode {
                 robot.rightMotor.setPower(Right * .2);
 
             } else {
-                robot.leftMotor.setPower(Left);
-                robot.rightMotor.setPower(Right);
-            }
-            /**
-             * Controller 2  mapping starts here
-             * */
+                if (gamepad1.dpad_right) {
+                    odsReadingRaw = ODS.getRawLightDetected();                   //update raw value (This function now returns a value between 0 and 5 instead of 0 and 1 as seen in the video)
+                    odsReadingLinear = Math.pow(odsReadingRaw, -0.5);
+                    robot.leftMotor.setPower(TurnCalc.WallDistL(odsReadingLinear));
+                    robot.rightMotor.setPower(TurnCalc.WallDistR(odsReadingLinear));
+                } else {
+                    robot.leftMotor.setPower(Left);
+                    robot.rightMotor.setPower(Right);
+                }
+                /**
+                 * Controller 2  mapping starts here
+                 * */
 
-            //Spin wheels for shooter
-            if (gamepad1.left_bumper) {
-                //Full power when button is pushed
-                robot.leftshooter.setPower(-1);
-                robot.rightshooter.setPower(1);
-            } else {
-                if (gamepad1.x){
-                    if (gamepad1.dpad_down){
-                        robot.leftshooter.setPower(1);
-                        robot.rightshooter.setPower(-1);
+                //Spin wheels for shooter
+                if (gamepad1.left_bumper) {
+                    //Full power when button is pushed
+                    robot.leftshooter.setPower(-.98);
+                    robot.rightshooter.setPower(.98);
+                } else {
+                    if (gamepad1.x) {
+                        if (gamepad1.dpad_down) {
+                            robot.leftshooter.setPower(1);
+                            robot.rightshooter.setPower(-1);
+
+                        }
+                    } else {
+                        robot.leftshooter.setPower(0);
+                        robot.rightshooter.setPower(0);
 
                     }
-                }else {
-                    robot.leftshooter.setPower(0);
-                    robot.rightshooter.setPower(0);
+                    //No power when button is not pushed
 
                 }
-                //No power when button is not pushed
 
-            }
+                //Button Press
 
-            //Button Press
-
-            if (gamepad1.a) {
-                robot.button.setPosition(.79);
-            } else {
-                robot.button.setPosition(.57);
-            }
+                if (gamepad1.a) {
+                    robot.button.setPosition(OUT);
+                } else {
+                    robot.button.setPosition(IN);
+                    telemetry.addData("Color Evaluate", EvaluateColorSensor.Evaluate(sensorRGB));
+                    telemetry.update();
+                }
                 if (gamepad1.b) {
                     // robot.leftshooter.setPower(-1);
                     // robot.rightshooter.setPower(1);
                     //sleep(3000);
-                    robot.servo.setPosition(.3);
+                    robot.servo.setPosition(UP);
                     //sleep(2000);
                     //robot.servo.setPosition(.9);
                     //robot.leftshooter.setPower(0);
@@ -128,22 +153,23 @@ public class Telop1Driver extends LinearOpMode {
 
 
                 } else {
-                    if (gamepad1.y){
-                            robot.leftMotor.setPower(0);
-                            robot.rightMotor.setPower(0);
-                            robot.Intake.setPower(0);
-                            robot.leftshooter.setPower(-1);
-                            robot.rightshooter.setPower(1);
-                            sleep(4000);
-                            robot.servo.setPosition(.3);
-                            sleep(2000);
-                            robot.leftshooter.setPower(0);
-                            robot.rightshooter.setPower(0);
+                    if (gamepad1.y) {
+                        robot.leftMotor.setPower(0);
+                        robot.rightMotor.setPower(0);
+                        robot.Intake.setPower(0);
+                        robot.leftshooter.setPower(-1);
+                        robot.rightshooter.setPower(1);
+                        sleep(4000);
+                        robot.servo.setPosition(UP);
+                        sleep(2000);
+                        robot.leftshooter.setPower(0);
+                        robot.rightshooter.setPower(0);
 
-                    }else{
+                    } else {
 
-                        robot.servo.setPosition(.9);
+                        robot.servo.setPosition(DOWN);
                     }
+
                 }
                 //if(AButtonPreviousState == false) {
 
@@ -169,4 +195,5 @@ public class Telop1Driver extends LinearOpMode {
         }
 
     }
+}
 

@@ -44,6 +44,11 @@ public class Vector2d {
         this.y = yin;
         return this;
     }
+    public Vector2d set ( final Vector2d cord) {
+        this.x = cord.x;
+        this.y = cord.y;
+        return this;
+    }
 
     /**
      * Simple math for addition and subtraction,

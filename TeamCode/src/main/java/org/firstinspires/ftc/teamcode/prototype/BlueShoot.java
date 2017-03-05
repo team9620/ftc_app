@@ -6,6 +6,7 @@ import android.view.View;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -15,12 +16,15 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.drivetrain.DriveCommands;
 import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
+import org.firstinspires.ftc.teamcode.fieldtracking.Field;
+import org.firstinspires.ftc.teamcode.fieldtracking.SimpleCoordinateTracker;
+import org.firstinspires.ftc.teamcode.fieldtracking.TickCountTracker;
 
 /**
  * Created by Connor on 2/9/2017.
  */
 @Autonomous(name="AutoShoot2Blue", group="Pushbot")
-//@Disabled
+@Disabled
 public class BlueShoot extends LinearOpMode {
     /* Declare OpMode members. */
     ROUSAutoHardware_WithServos robot = new ROUSAutoHardware_WithServos();   // Use a Pushbot's hardware
@@ -50,7 +54,8 @@ public class BlueShoot extends LinearOpMode {
 
     static final double UP = .3;
     static final double DOWN = .9;
-
+    public TickCountTracker tcTrack = null;
+    public SimpleCoordinateTracker scTracker = null;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -148,8 +153,13 @@ public class BlueShoot extends LinearOpMode {
             // convert the RGB values to HSV values.
             Color.RGBToHSV((sensorRGB.red() * 255) / 800, (sensorRGB.green() * 255) / 800, (sensorRGB.blue() * 255) / 800, hsvValues);
             sleep(500);
+            scTracker = new SimpleCoordinateTracker();
+            scTracker.setPositionAndDirectionDeg(Field.POSITION1, 180.0);
+            tcTrack = new TickCountTracker();
+            tcTrack.initialize(scTracker, 0,0);
+
             DriveCommands Command = new DriveCommands();
-            Command.initializeForOpMode( this, hardwareMap );
+            Command.initializeForOpMode(this,hardwareMap, tcTrack,scTracker);
             // loop and read the RGB data.
             // Note we use opModeIsActive() as our loop condition because it is an interruptible method.
 
@@ -187,9 +197,9 @@ public class BlueShoot extends LinearOpMode {
             robot.leftshooter.setPower(-1);
             robot.rightshooter.setPower(1);
             sleep(250);
-            Command.gyroTurn(this,TURN_SPEED, 0);
-            Command.Drive(this,DRIVE_SPEED2, 10, 10, 10);
-            Command.gyroTurn(this, TURN_SPEED, -12);
+            Command.gyroTurn(TURN_SPEED, 0);
+            Command.Drive(DRIVE_SPEED2, 10, 10, 10);
+            Command.gyroTurn(TURN_SPEED, -12);
             sleep(1000);
             robot.servo.setPosition(UP);
             telemetry.addData(">", "Servo is in Up Position");
@@ -213,11 +223,11 @@ public class BlueShoot extends LinearOpMode {
             robot.leftshooter.setPower(0);
             robot.rightshooter.setPower(0);
             //TurnLeft(TURN_SPEED, 12 , 10);
-            Command.Drive(this,DRIVE_SPEED, 34, 34, 10);
-            Command.TurnRight(this,DRIVE_SPEED, 90, 10);
-            Command. TurnLeft(this,DRIVE_SPEED, 90, 10);
-            Command.gyroTurn(this,TURN_SPEED, 0);
-            Command. Drive(this,DRIVE_SPEED, 16, 16, 10);
+            Command.Drive(DRIVE_SPEED, 34, 34, 10);
+            Command.TurnRight(DRIVE_SPEED, 90, 10);
+            Command. TurnLeft(DRIVE_SPEED, 90, 10);
+            Command.gyroTurn(TURN_SPEED, 0);
+            Command. Drive(DRIVE_SPEED, 16, 16, 10);
             stop();
         }
     }

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.prototype;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cGyro;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
@@ -9,12 +10,15 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
 import org.firstinspires.ftc.teamcode.drivetrain.DriveCommands;
+import org.firstinspires.ftc.teamcode.fieldtracking.Field;
+import org.firstinspires.ftc.teamcode.fieldtracking.SimpleCoordinateTracker;
+import org.firstinspires.ftc.teamcode.fieldtracking.TickCountTracker;
 
 /**
  * Created by Connor on 2/9/2017.
  */
 @Autonomous(name="Drive4ft", group="Pushbot")
-//@Disabled
+@Disabled
 public class Drive4ft extends LinearOpMode {
     ROUSAutoHardware_WithServos robot = new ROUSAutoHardware_WithServos();   // Use a Pushbot's hardware
     ModernRoboticsI2cGyro gyro = null;
@@ -47,7 +51,8 @@ public class Drive4ft extends LinearOpMode {
     // odsReadingRaw to the power of (-0.5)
     static double odsReadingLinear;
 
-
+    public TickCountTracker tcTrack = null;
+    public SimpleCoordinateTracker scTracker = null;
         @Override
         public void runOpMode() throws InterruptedException {
 
@@ -68,8 +73,13 @@ public class Drive4ft extends LinearOpMode {
             telemetry.addData(">", "Gyro is Calibrated.");    //
             telemetry.update();
             telemetry.update();
+            scTracker = new SimpleCoordinateTracker();
+            scTracker.setPositionAndDirectionDeg(Field.POSITION1, 180.0);
+            tcTrack = new TickCountTracker();
+            tcTrack.initialize(scTracker, 0,0);
+
             DriveCommands Command = new DriveCommands();
-            Command.initializeForOpMode( this, hardwareMap );
+            Command.initializeForOpMode(this,hardwareMap, tcTrack,scTracker);
             ODS = hardwareMap.opticalDistanceSensor.get("ods");
             odsReadingRaw = ODS.getRawLightDetected();                   //update raw value (This function now returns a value between 0 and 5 instead of 0 and 1 as seen in the video)
             odsReadingLinear = Math.pow(odsReadingRaw, -0.5);
@@ -99,9 +109,9 @@ public class Drive4ft extends LinearOpMode {
             //Command.gyroTurn(this,TURN_SPEED,-180);
             //sleep(250);
             //Command.gyroDrive(this,DRIVE_SPEED, 34, -180);
-            Command.OdsDrive(this,48, 20);
+            Command.OdsDrive(48, 20);
             sleep(2000);
-            Command.OdsDrive(this, -48, 20);
+            Command.OdsDrive(-48, 20);
             sleep(5000);
             stop();
 
