@@ -1,11 +1,20 @@
 package org.firstinspires.ftc.teamcode.fieldtracking;
 
 import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
+import org.firstinspires.ftc.teamcode.utilities.Units;
 
 /**
  * Created by ROUS on 3/3/2017.
  */
 public class VectorFUtil {
+
+    // helper function to format vector for telemetry and robot log
+    public static String FormatVectorF( final VectorF vec ){
+        return String.format("[%.04f\",%.04f\",%.04f\"]", Units.mmtoinch(vec.get(0)),
+                Units.mmtoinch(vec.get(1)), Units.mmtoinch(vec.get(2)) );
+    }
+
+
     public static VectorF CrossProduct(final VectorF vA, final VectorF vB ) {
         /**
          * C = AxB = (AyBz − AzBy, AzBx − AxBz, AxBy − AyBx);
