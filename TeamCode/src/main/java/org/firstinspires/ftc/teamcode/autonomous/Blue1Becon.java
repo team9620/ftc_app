@@ -13,12 +13,19 @@ import com.qualcomm.robotcore.hardware.DeviceInterfaceModule;
 import com.qualcomm.robotcore.hardware.DigitalChannelController;
 import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.robotcore.external.Telemetry;
+import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.teamcode.drivetrain.DriveCommands;
 import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
+import org.firstinspires.ftc.teamcode.fieldtracking.DirectionDistance;
 import org.firstinspires.ftc.teamcode.fieldtracking.Field;
 import org.firstinspires.ftc.teamcode.fieldtracking.SimpleCoordinateTracker;
 import org.firstinspires.ftc.teamcode.fieldtracking.TickCountTracker;
+import org.firstinspires.ftc.teamcode.fieldtracking.Tracker;
+import org.firstinspires.ftc.teamcode.fieldtracking.Vector2d;
+import org.firstinspires.ftc.teamcode.fieldtracking.VuforiaTarget;
 import org.firstinspires.ftc.teamcode.sensors.EvaluateColorSensor;
 import org.firstinspires.ftc.teamcode.sensors.eColorState;
 
@@ -78,6 +85,7 @@ public class Blue1Becon extends LinearOpMode {
 
     public TickCountTracker tcTrack = null;
     public SimpleCoordinateTracker scTracker = null;
+    public Tracker vfTracker = null;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -176,6 +184,8 @@ public class Blue1Becon extends LinearOpMode {
 
         sleep(Pause_Time_Telemetry);
 
+        vfTracker = new Tracker();
+        vfTracker.intializefunction( this.telemetry, Tracker.PhoneOnBot ); // default phone location
 
         while (opModeIsActive()) {
 
@@ -301,6 +311,8 @@ public class Blue1Becon extends LinearOpMode {
             robot.leftshooter.setPower(0);
             robot.rightshooter.setPower(0);
 
+            vfTracker.beginTracking();
+
             // Step through each leg of the path,
             // Note: Reverse movement is obtained by setting a negative distance (not speed)
             // Put a hold after each turn
@@ -308,30 +320,46 @@ public class Blue1Becon extends LinearOpMode {
             sleep(Pause_Time);
 
             Command.gyroTurn(TURN_SPEED, 0);
-            Command.Drive(DRIVE_SPEED2, 10, 10, 100);
+            Command.DriveStraight(DRIVE_SPEED2, 10, 10);
             Command.gyroTurn(TURN_SPEED, -12);
+
             Command.Shoot(UP, DOWN);
-            Command.Drive(DRIVE_SPEED2, .5,.5,10);
+
+            Command.DriveStraight(DRIVE_SPEED2, 0.5, 10);
             Command.gyroTurn(TURN_SPEED, -60);
-            Command.Drive(DRIVE_SPEED, 44, 44, 100);
+            Command.DriveStraight(DRIVE_SPEED, 44, 10);
             Command.gyroTurn(TURN_SPEED, -65);
-            Command.Drive(DRIVE_SPEED, 20, 20, 100);
+
+            // vuforia sample calc for correcting position.
+            // NOTE this belongs in a function, not inline...
+            VuforiaTarget obs = vfTracker.getCurrentObservation();
+            if ( null != obs ) {
+                Vector2d vPos = obs.getRobotPos();
+                Vector2d vDir = obs.getRobotDir();
+                DirectionDistance dir = vDir.asDirectionDistance();
+                RobotLog.ii("Vuforia Correction", "Error: %s, DA: %.04fd",
+                        Vector2d.Subtract(vPos,scTracker.coordinate).formatAsString(),
+                        Math.toDegrees(dir.dirRad-scTracker.direction));
+                scTracker.setPositionAndDirectionRad(vPos, dir.dirRad);
+            }
+
+            Command.DriveStraight(DRIVE_SPEED, 20, 10);
             Command.gyroTurn(TURN_SPEED, -75);
-            Command.Drive(DRIVE_SPEED, 10, 10, 100);
+            Command.DriveStraight(DRIVE_SPEED, 10, 10);
             Command.gyroTurn(TURN_SPEED, 0);
             Command.OdsDrive(20, 20);
-            Command.Drive(DRIVE_SPEED, -25, -25, 10);
+            Command.DriveStraight(DRIVE_SPEED, -25, 10);
 
             sleep(Pause_Time);
 
             while (opModeIsActive()) {
 
-            Boolean Blue = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.blue);
-            Boolean Red = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.red);
+                Boolean Blue = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.blue);
+                Boolean Red = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.red);
 
-            sleep(Pause_Time);
+                sleep(Pause_Time);
 
-            Command.BeaconEvalBlue(Blue, Red, IN, OUT);
+                Command.BeaconEvalBlue(Blue, Red, IN, OUT);
             }
         }
 

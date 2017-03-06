@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode.fieldtracking;
 
 
 public class TurnCalc {
-    private static final double WheelSpace = 14.5;
+    public  static final double WheelSpace = 14.5;
     private static final float Pi = 3.1415926f;
     private static final double Equation = ((WheelSpace)/2) * (2*Pi);
     private static final double Closex1 = 3;
@@ -21,8 +21,13 @@ public class TurnCalc {
     private static final double m2deg = (Y1deg - Y2deg)/(Degoff2-Degoff1);
     private static final double b1deg = Y1deg - (m1deg*Degoff1);
     private static final double b2deg = Y2deg - (m2deg*Degoff2);
+
         public static double Turn(double val) {
             return val/360 * Equation;
+
+        }
+        public static double BreakTurnDeg(double valDegrees) {
+            return Math.toRadians(valDegrees) * WheelSpace;
 
         }
         public static double WallDistR(double odsval){

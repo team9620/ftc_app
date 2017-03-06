@@ -17,8 +17,7 @@ import org.firstinspires.ftc.teamcode.utilities.Units;
 public class VuforiaTarget {
 
     // Constants
-    static public final VectorF XAxis = new VectorF(1,0,0,1);
-    static public final VectorF PhoneOnBot = new VectorF(9f,2f,6f,0f);
+    public static final VectorF XAxis = new VectorF(1,0,0,1);
 
 
     //----------------------------------------------------------------------------------------------
@@ -83,12 +82,9 @@ public class VuforiaTarget {
                 && null != this._fieldLoc
                 && null != this._poseLoc ){
 
-
             this._trackPos = this._trackableLoc.getTranslation().normalized3D();
             this._robotPos = this._fieldLoc.getTranslation().normalized3D();
-
-            VectorF rawDiffObserved = this._trackPos.subtracted(this._robotPos).normalized3D();
-            this._observedDir = rawDiffObserved;
+            this._observedDir = this._trackPos.subtracted(this._robotPos).normalized3D();
 
             /**
              * inverted phone transform
@@ -111,13 +107,15 @@ public class VuforiaTarget {
             OpenGLMatrix cv1 = getFieldLocation(phoneLoc1OnRobotInv);
             OpenGLMatrix cv2 = getFieldLocation(phoneLoc2OnRobotInv);
 
-            this._camPos1 = cv1.getTranslation();
-            this._camPos2 = cv2.getTranslation();
-            VectorF cvDelta = cv2.getTranslation().subtracted(cv1.getTranslation());
-
-            this._robotDir = cvDelta;
-            this._ccwDirectionRefXAxis = VectorFUtil.CalculateXYAngleCCW(this._robotDir, XAxis); /**rad angle */
-            this._bValid = true;
+            try {
+                this._camPos1 = cv1.getTranslation();
+                this._camPos2 = cv2.getTranslation();
+                this._robotDir = cv2.getTranslation().subtracted(cv1.getTranslation());
+                this._ccwDirectionRefXAxis = VectorFUtil.CalculateXYAngleCCW(this._robotDir, XAxis); /**rad angle */
+                this._bValid = true;
+            }
+            catch (NullPointerException e){
+            }
         }
         return this._bValid;
     }
@@ -132,16 +130,26 @@ public class VuforiaTarget {
                     , Units.mmtoinch(this._robotPos.get(1))
                     , Math.toDegrees(this._ccwDirectionRefXAxis));
         } else {
-            return new String("");
+            return "";
         }
 
     }
 
+    /**returns vector to robot center in inches*/
     public Vector2d getRobotPos() {
-        return new Vector2d( (double)_robotPos.get(0), (double)_robotPos.get(1) );
+        return new Vector2d( Units.mmtoinch((double)_robotPos.get(0)), Units.mmtoinch((double)_robotPos.get(1)) );
     }
 
+    /**returns vector representing robot direction in inches*/
     public Vector2d getRobotDir() {
-        return new Vector2d( _robotDir.get(0), _robotDir.get(1));
+        return new Vector2d( Units.mmtoinch((double)_robotDir.get(0)), Units.mmtoinch((double)_robotDir.get(1))).normalize();
     }
+
+    public Vector2d getTargetPos() {
+        return new Vector2d( Units.mmtoinch((double)_trackPos.get(0)), Units.mmtoinch((double)_trackPos.get(1)) );
+    }
+
+    public Vector2d getVectorToTarget() { return Vector2d.Subtract( getTargetPos(), getRobotPos()); }
+
+    public double getDistanceToTarget() { return getVectorToTarget().magnitude(); }
 }
