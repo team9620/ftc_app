@@ -18,14 +18,20 @@ public class EvaluateColorSensor {
         return ( delta <= tol );
     }
 
-    /** evaluate color channels and return simple color assessment */
-    static public eColorState Evaluate(ColorSensor sensorRGB )
-    {
+    static public float[] GetHSVFromSensor( ColorSensor sensorRGB ) {
         /**  is an array that will hold 0.0 - 1.0 values of red, green blue. */
         float hsvValues[] = {0f,0f,0f};
         /** convert the RGB values to HSV values. */
         Color.RGBToHSV((sensorRGB.red() * 255) / 800, (sensorRGB.green() * 255) / 800, (sensorRGB.blue() * 255) / 800, hsvValues);
+        return hsvValues;
+    }
 
+    /** evaluate color channels and return simple color assessment */
+    static public eColorState Evaluate(ColorSensor sensorRGB ) {
+        return EvaluateHSV( GetHSVFromSensor( sensorRGB ));
+    }
+    /** evaluate color channels and return simple color assessment */
+    static public eColorState EvaluateHSV( final float[] hsvValues ) {
         /**
          * For blue color a hue range from 221° to 240°
          * For red color a hue range from 355° to 10°
@@ -51,8 +57,14 @@ public class EvaluateColorSensor {
         }
     }
     /** evaluate for specific color channel dominance */
+    static public boolean EvaluateColorHSV( final float[] hsvValues, eColorState checkColor )
+    {
+        return ( checkColor == EvaluateHSV( hsvValues ) );
+    }
+
+    /** evaluate for specific color channel dominance */
     static public boolean EvaluateColor( ColorSensor sensorRGB, eColorState checkColor )
     {
         return ( checkColor == Evaluate( sensorRGB ) );
     }
-    }
+}
