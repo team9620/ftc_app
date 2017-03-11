@@ -153,7 +153,7 @@ public class AutoOpBlueCtrShoot2WheelsLegos extends LinearOpMode {
         Vector2d faceWheelsOffsetPos = new Vector2d( Field.BLUE_WHEELS_BEACON_XY ).add( -10, -10 );
         DirectionDistance driveToWheels = Vector2d.Subtract( faceWheelsOffsetPos, tcTrack.coordinate).asDirectionDistance(); // head-tail
         //Turn and drive to next location for approach to wheels target
-        drive.EncoderDrive( 0.1, observeBlueCenterVortex, 10.0 );
+        drive.EncoderDrive( 0.1, driveToWheels, 10.0 );
 
         /**update tracking from vuforia observation*/
         VuforiaTarget obs = vfTrack.updateAndGetCurrentObservation();
@@ -174,10 +174,30 @@ public class AutoOpBlueCtrShoot2WheelsLegos extends LinearOpMode {
         // osd based drive command needs to be written
 
         // check color
-        // optional move to other side of beacon
-        // press button
+        if ( color.getColor() && !color.isBlue() ){
+            // optional move forward to other side of beacon
+            double xBeaconOtherSide = (Field.BLUE_WHEELS_BEACON_XY.x+(4.5/2.0)) - scTrack.coordinate.x;
+            drive.DriveStraight(0.1, xBeaconOtherSide, 10.0);
+        }
+        // safety check check color
+        if ( color.getColor() && color.isBlue() ){
+            // press button 3x with 1/2 return and 250ms sleep between
+        }
 
-        //Calculate next move
+        //Calculate next move - this is a shortcut because it is an example
+        // You need ot stop short, loook for the line, then do similar calcs as above
+        DirectionDistance legosBeaconApproach = Vector2d
+                .Subtract(Field.BLUE_LEGOS_BEACON_XY, scTrack.coordinate)
+                .add( -3.0, 0.0 )
+                .asDirectionDistance();
+        //Turn and drive to next location for approach to wheels target
+        drive.EncoderDrive( 0.1, legosBeaconApproach, 10.0 );
+
+        // repeat the line detection and color check- optional- drive- check press
+
+        // calculate reverse break turn to back into ball
+
+        // calculate reverse direction distance to drive to knock off the ball and park on the center
 
         // driving ends here.
         ////////////////////////////////////////////////////////////////////////////////////////
