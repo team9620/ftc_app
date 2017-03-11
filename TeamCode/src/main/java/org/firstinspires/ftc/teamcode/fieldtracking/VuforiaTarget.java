@@ -141,8 +141,16 @@ public class VuforiaTarget {
     }
 
     /**returns vector representing robot direction in inches*/
-    public Vector2d getRobotDir() {
+    public Vector2d getRobotDirVec() {
         return new Vector2d( Units.mmtoinch((double)_robotDir.get(0)), Units.mmtoinch((double)_robotDir.get(1))).normalize();
+    }
+
+    public double getRobotDirRad() {
+        return _ccwDirectionRefXAxis;
+    }
+
+    public double getRobotDirDeg() {
+        return Math.toDegrees(_ccwDirectionRefXAxis);
     }
 
     public Vector2d getTargetPos() {

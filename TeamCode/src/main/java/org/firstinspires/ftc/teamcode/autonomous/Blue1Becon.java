@@ -335,7 +335,7 @@ public class Blue1Becon extends LinearOpMode {
             VuforiaTarget obs = vfTracker.getCurrentObservation();
             if ( null != obs ) {
                 Vector2d vPos = obs.getRobotPos();
-                Vector2d vDir = obs.getRobotDir();
+                Vector2d vDir = obs.getRobotDirVec();
                 DirectionDistance dir = vDir.asDirectionDistance();
                 RobotLog.ii("Vuforia Correction", "Error: %s, DA: %.04fd",
                         Vector2d.Subtract(vPos,scTracker.coordinate).formatAsString(),

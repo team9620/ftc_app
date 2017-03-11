@@ -62,6 +62,11 @@ public class SimpleCoordinateTracker {
     public SimpleCoordinateTracker setPositionAndDirection(final TickCountTracker tcTrack){
         return setDirectionRad(tcTrack.dirRad).setPosition(tcTrack.coordinate);
     }
+
+    public SimpleCoordinateTracker setPositionAndDirection(final VuforiaTarget obs){
+        return setDirectionRad(obs.getRobotDirRad()).setPosition(obs.getRobotPos());
+    }
+
     public SimpleCoordinateTracker shiftPositionByXY(double x, double y){
         return shiftPositionByXY(new Vector2d(x, y));
     }
@@ -194,5 +199,15 @@ public class SimpleCoordinateTracker {
 
         // subtract radial deflection angle because it is signed for reverse CW rotation
         this.setDirectionRad( Util.OptomizeAngleZero_TwoPi( this.direction - radDeflectionAngle ) );
+    }
+
+    /**calculates new position from current without changing current position*/
+    public Vector2d CalculatePosition( final DirectionDistance dd ){
+        return dd.asVector2d().add(this.coordinate);
+    }
+
+    /**calculates new position from current without changing current position*/
+    public Vector2d CalculatePosition( final Vector2d vec ){
+        return new Vector2d(this.coordinate).add(vec);
     }
 }

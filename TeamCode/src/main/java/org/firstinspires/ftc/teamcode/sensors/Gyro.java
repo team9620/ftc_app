@@ -10,42 +10,44 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
  */
 public class Gyro {
 
+    public static final String TAG = "Gyro";
     public ModernRoboticsI2cGyro gyro = null;                                          // Additional Gyro device
 
     /**Initialize ColorSensor for Op Mode.*/
-    public void initializeForOpMode(LinearOpMode opModeIn, HardwareMap hwMap) throws InterruptedException {
+    public void initializeForOpMode(LinearOpMode op, HardwareMap hwMap) throws InterruptedException {
 
         gyro = (ModernRoboticsI2cGyro) hwMap.gyroSensor.get("gyro");
 
-        opModeIn.telemetry.addData(">", "Calibrating Gyro");
-        opModeIn.telemetry.update();
+        op.telemetry.addData(TAG, "Calibrating Gyro");
+        op.telemetry.update();
 
         gyro.calibrate();
 
         // make sure the gyro is calibrated before continuing
-        while (!opModeIn.isStopRequested() && gyro.isCalibrating()) {
-            opModeIn.sleep(50);
-            opModeIn.idle();
+        while (!op.isStopRequested() && gyro.isCalibrating()) {
+            op.sleep(50);
+            op.idle();
         }
 
-        opModeIn.telemetry.addData(">", "Gyro is Calibrated.");    //
-        opModeIn.telemetry.update();
+        op.telemetry.addData(TAG, "Gyro is Calibrated.");
+        addTelemetryData(op);
+        op.telemetry.update();
     }
 
-    double getCurrentDeflectionDeg() {
+    public double getCurrentDeflectionDeg() {
         return (double) gyro.getIntegratedZValue();
     }
 
-    double getCurrentDeflectionRad() {
+    public double getCurrentDeflectionRad() {
         return Math.toRadians(getCurrentDeflectionDeg());
     }
 
-    void resetToZero(){
+    public void resetToZero(){
         gyro.resetZAxisIntegrator();
     }
 
-    void addTelemetryData( LinearOpMode op ) {
-        op.telemetry.addData(">", "Gyro Heading = %d", gyro.getIntegratedZValue());
+    public void addTelemetryData( LinearOpMode op ) {
+        op.telemetry.addData(TAG, "Gyro Heading = %d", getCurrentDeflectionDeg());
     }
 
 }
