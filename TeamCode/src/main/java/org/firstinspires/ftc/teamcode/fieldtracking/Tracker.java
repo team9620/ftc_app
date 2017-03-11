@@ -298,5 +298,15 @@ public class Tracker {
         return (( null != obs ) ? obs.formatAsString() : "");
     }
 
+    /**
+     * updates observation set and returns current when available
+     *
+     * @return VuforiaTarget if observed, otherwise null
+     * @throws InterruptedException
+     */
+    public VuforiaTarget updateAndGetCurrentObservation()throws InterruptedException {
+        updateLastKnowLocation();
+        return getCurrentObservation();
+    }
 }
 

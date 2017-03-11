@@ -11,9 +11,11 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 import com.qualcomm.robotcore.util.RobotLog;
 
+import org.firstinspires.ftc.teamcode.fieldtracking.DirectionDistance;
 import org.firstinspires.ftc.teamcode.fieldtracking.SimpleCoordinateTracker;
 import org.firstinspires.ftc.teamcode.fieldtracking.TickCountTracker;
 import org.firstinspires.ftc.teamcode.fieldtracking.TurnCalc;
+import org.firstinspires.ftc.teamcode.fieldtracking.Util;
 import org.firstinspires.ftc.teamcode.fieldtracking.Vector2d;
 
 
@@ -237,9 +239,55 @@ public class DriveCommands {
         }
     }
 
-    public void TurnRight(double speed,
-                          float turndeg,
+    public void EncoderDrive(double speed,
+                      final DirectionDistance dd,
+                      double timeoutS) throws InterruptedException {
+        /**
+         * calculation to get the relative turn needed to make the
+         * robot align with the center of the blue vortex
+         * */
+        double deltaRad = dd.dirRad - scTracker.direction;
+        double turnAngle = Math.toDegrees( Util.OptomizeAngleNegPi_PosPi( deltaRad ));
+        //Turn to direction
+        if ( !Util.FuzzyZero(turnAngle, 0.5) ){
+            TurnRelative( speed, Math.toDegrees(turnAngle), timeoutS );
+        }
+        //drive on heading
+        if (!Util.FuzzyZero(dd.distIn, 0.1) ){
+            DriveStraight( speed, dd.distIn, timeoutS );
+        }
+    }
+
+
+    public void EncoderTurnToDirectionDegrees(double speed,
+                          double dirDeg,
                           double timeoutS) throws InterruptedException {
+        if (opMode.opModeIsActive()) {
+
+            /**
+             * calculation to get the relative turn needed to make the
+             * robot align with the center of the blue vortex
+             * */
+            double deltaRad = Math.toRadians(dirDeg) - scTracker.direction;
+            double turnAngle = Math.toDegrees( Util.OptomizeAngleNegPi_PosPi( deltaRad ));
+            /**Turn to face the vortex*/
+            if ( !Util.FuzzyZero(turnAngle, 0.5) ){
+                double dist = TurnCalc.Turn(Math.toDegrees(turnAngle));
+                DriveCore(speed, dist, -dist, timeoutS);
+                scTracker.turnRelativeDeg(turnAngle);
+                RobotLog.ii("EncoderTurnToDirectionDeg", "Error: %s, AE: %.04fd",
+                        Vector2d.Subtract(tcTrack.coordinate,scTracker.coordinate).formatAsString(),
+                        Math.toDegrees(tcTrack.dirRad-scTracker.direction));
+                scTracker.setPositionAndDirection(tcTrack);
+
+                opMode.sleep(Pause_Time);   // optional pause after each move
+            }
+        }
+    }
+
+    public void TurnRelative(double speed,
+                            double turndeg,
+                            double timeoutS) throws InterruptedException {
         if (opMode.opModeIsActive()) {
 
             double dist = TurnCalc.Turn(turndeg);
@@ -250,13 +298,19 @@ public class DriveCommands {
                     Vector2d.Subtract(tcTrack.coordinate,scTracker.coordinate).formatAsString(),
                     Math.toDegrees(tcTrack.dirRad-scTracker.direction));
             scTracker.setPositionAndDirection(tcTrack);
-
             opMode.sleep(Pause_Time);   // optional pause after each move
         }
     }
 
+
+    public void TurnRight(double speed,
+                          float turndeg,
+                          double timeoutS) throws InterruptedException {
+        TurnRelative( speed, -(double)turndeg, timeoutS );
+     }
+
     public void BreakTurnRight(double speed,
-                              float turndeg,
+                               double turndeg,
                               double timeoutS) throws InterruptedException {
         if (opMode.opModeIsActive()) {
 
@@ -281,23 +335,11 @@ public class DriveCommands {
     public void TurnLeft(double speed,
                           float turndeg,
                           double timeoutS) throws InterruptedException {
-        if (opMode.opModeIsActive()) {
-
-            double dist = TurnCalc.Turn(turndeg);
-            DriveCore(speed, -dist, dist, timeoutS);
-
-            scTracker.turnRelativeDeg(turndeg);
-            RobotLog.ii("TurnLeft", "Error: %s, AE: %.04fd",
-                    Vector2d.Subtract(tcTrack.coordinate,scTracker.coordinate).formatAsString(),
-                    Math.toDegrees(tcTrack.dirRad-scTracker.direction));
-            scTracker.setPositionAndDirection(tcTrack);
-
-            opMode.sleep(Pause_Time);   // optional pause after each move
-        }
+        TurnRelative( speed, (double)turndeg, timeoutS );
     }
 
     public void BreakTurnLeft(double speed,
-                         float turndeg,
+                         double turndeg,
                          double timeoutS) throws InterruptedException {
         if (opMode.opModeIsActive()) {
 

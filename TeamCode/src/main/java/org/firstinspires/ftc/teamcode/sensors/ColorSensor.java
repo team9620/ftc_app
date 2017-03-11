@@ -14,10 +14,12 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
  * Initializes and interacts with the color sensor
  */
 public class ColorSensor extends EvaluateColorSensor {
+
     static final long Pause_Time = 25;
     static final long Pause_Time_int= 250;
     static final long Pause_Time_Telemetry= 2500;
 
+    public static final String TAG = "Color";
     public com.qualcomm.robotcore.hardware.ColorSensor sensorRGB = null;
     public DeviceInterfaceModule cdim = null;
     static final private int LED_CHANNEL = 5;
@@ -35,7 +37,7 @@ public class ColorSensor extends EvaluateColorSensor {
     /**Initialize ColorSensor for Op Mode.*/
     public void initializeForOpMode(LinearOpMode op, HardwareMap hw ) throws InterruptedException {
 
-        op.telemetry.addData(">", "Initializing Color Sensor");
+        op.telemetry.addData(TAG, "Initializing Color Sensor");
         op.telemetry.update();
 
         resetColor();
@@ -74,13 +76,6 @@ public class ColorSensor extends EvaluateColorSensor {
         // wait for the start button to be pressed.
         // send the info back to driver station using telemetry function.
 
-        op.telemetry.addData(">", "Color Sensor is Active");
-        op.telemetry.addData("LED", bLedOn ? "On" : "Off");
-        op.telemetry.addData("Clear", sensorRGB.alpha());
-        op.telemetry.addData("Red  ", sensorRGB.red());
-        op.telemetry.addData("Green", sensorRGB.green());
-        op.telemetry.addData("Blue ", sensorRGB.blue());
-        op.telemetry.addData("Hue", hsvValues[0]);
 
         // change the background color to match the color detected by the RGB sensor.
         // pass a reference to the hue, saturation, and value array as an argument
@@ -92,12 +87,13 @@ public class ColorSensor extends EvaluateColorSensor {
             }
         });
 
+        addTelemetryData(op);
         op.telemetry.update();
 
         op. sleep(Pause_Time_Telemetry);
     }
 
-    void resetColor() {
+    public void resetColor() {
         hsvValues = emptyValues;
         values = emptyValues;
         eColor = eColorState.unknown;
@@ -108,7 +104,7 @@ public class ColorSensor extends EvaluateColorSensor {
         });
     }
 
-    boolean getColor() {
+    public boolean getColor() {
         // update previous state variable.
         // convert the RGB values to HSV values.
         hsvValues = GetHSVFromSensor( sensorRGB );
@@ -122,12 +118,12 @@ public class ColorSensor extends EvaluateColorSensor {
         return eColorState.unknown != eColor;
     }
 
-    boolean isBlue() { return eColorState.blue == eColor; }
-    boolean isRed() { return eColorState.red == eColor; }
-    boolean isColor( eColorState checkColor ) { return checkColor == eColor; }
+    public boolean isBlue() { return eColorState.blue == eColor; }
+    public boolean isRed() { return eColorState.red == eColor; }
+    public boolean isColor( eColorState checkColor ) { return checkColor == eColor; }
 
-    void addTelemetryData( LinearOpMode op ) {
-        op.telemetry.addData(">", "Color Sensor is Active");
+    public void addTelemetryData( LinearOpMode op ) {
+        op.telemetry.addData(TAG, "Color Sensor is Active");
         op.telemetry.addData("LED", bLedOn ? "On" : "Off");
         op.telemetry.addData("Clear", sensorRGB.alpha());
         op.telemetry.addData("Red  ", sensorRGB.red());
