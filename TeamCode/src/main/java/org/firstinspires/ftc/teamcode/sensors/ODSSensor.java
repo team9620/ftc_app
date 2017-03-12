@@ -21,7 +21,7 @@ public class ODSSensor {
     public double odsReadingLinear;
 
     /**Initialize ColorSensor for Op Mode.*/
-    public void initializeForOpMode(LinearOpMode op, HardwareMap hwMap) throws InterruptedException {
+    public void initializeForOpMode(LinearOpMode op, HardwareMap hwMap) {
 
         op.telemetry.addData(TAG, "Initializing ODS Sensor");
         op.telemetry.update();

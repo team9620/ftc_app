@@ -45,16 +45,16 @@ public class DriveCommands {
     OpticalDistanceSensor ODS;
     public Servo servo = null;
     public Servo button=null;
-    static final double COUNTS_PER_MOTOR_REV = 1680;    // eg: TETRIX Motor Encoder
-    static final double DRIVE_GEAR_REDUCTION = .625;     // This is < 1.0 if geared UP
-    static final double WHEEL_DIAMETER_INCHES = 4.0;     // For figuring circumference
-    static final double Pi = 3.141592653f;
-    static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
+    public static final double COUNTS_PER_MOTOR_REV = 1680;    // eg: TETRIX Motor Encoder
+    public static final double DRIVE_GEAR_REDUCTION = .625;     // This is < 1.0 if geared UP
+    public static final double WHEEL_DIAMETER_INCHES = 4.0;     // For figuring circumference
+    public static final double Pi = 3.141592653f;
+    public static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * Pi);
-    static final double HEADING_THRESHOLD = 10;      // As tight as we can make it with an integer gyro
-    static final double P_TURN_COEFF = 0.05;     // Larger is more responsive, but also less stable
-    static final double P_DRIVE_COEFF = .075;     // Larger is more responsive, but also less stable
-    static final long Pause_Time = 50;
+    public static final double HEADING_THRESHOLD = 10;      // As tight as we can make it with an integer gyro
+    public static final double P_TURN_COEFF = 0.05;     // Larger is more responsive, but also less stable
+    public static final double P_DRIVE_COEFF = .075;     // Larger is more responsive, but also less stable
+    public static final long Pause_Time = 50;
     double odsReadingRaw;
     double odsReadingRaw2;
 
@@ -71,16 +71,17 @@ public class DriveCommands {
      */
     public void initializeForOpMode(LinearOpMode opModeIn, HardwareMap hwMap, TickCountTracker tcTrackIn, SimpleCoordinateTracker scTrackerIn) throws InterruptedException {
 
-        /**
-         * Send telemetry message to signify robot waiting;
-         */
-        opMode.telemetry.addData("Status", "Resetting Encoders");
-        opMode.telemetry.update();
-
         // Define and Initialize Motors
         opMode = opModeIn;
         tcTrack = tcTrackIn;
         scTracker = scTrackerIn;
+
+        /**
+          * Send telemetry message to signify robot waiting;
+          */
+        opMode.telemetry.addData("Status", "Resetting Encoders");
+        opMode.telemetry.update();
+
 
         leftMotor       = hwMap.dcMotor.get(tag_left_wheel);
         rightMotor      = hwMap.dcMotor.get(tag_right_wheel);
@@ -117,7 +118,6 @@ public class DriveCommands {
         RobotLog.ii(TAG, "ZP Behavior after - Left:=%s Right:=%s"
                 , ZPMToString(leftMotor.getZeroPowerBehavior())
                 , ZPMToString((rightMotor.getZeroPowerBehavior())));
-
 
         /** Send telemetry message to indicate initial encoder pos*/
         int encoderLeft = leftMotor.getCurrentPosition();
@@ -225,15 +225,140 @@ public class DriveCommands {
         }
     }
 
+    /**
+     *  Method to perfmorm a relative move, based on encoder counts.
+     *  Encoders are not reset as the move is based on the current position.
+     *  Move will stop if any of three conditions occur:
+     *  1) Move gets to the desired position
+     *  2) Move runs out of time
+     *  3) Driver stops the opmode running.
+     */
+    public void EncoderDriveCore( double speed,
+                                  double leftInches, double rightInches,
+                                  double timeoutS) {
+        // Ensure that the opmode is still active
+        if (opMode.opModeIsActive() && 0.0 != leftInches || 0.0 != rightInches ) {
+
+            // Determine initial and target positions
+            int initialLeftPos = leftMotor.getCurrentPosition();
+            int initialRightPos = rightMotor.getCurrentPosition();
+            int targetLeftPos = initialLeftPos + (int)(leftInches * COUNTS_PER_INCH);
+            int targetRightPos = initialRightPos + (int)(rightInches * COUNTS_PER_INCH);
+
+            // reset tracking to last known coordinate and direction just in case vuforia provided new info
+            tcTrack.initialize(scTracker, leftMotor.getCurrentPosition(), rightMotor.getCurrentPosition());
+
+            // calculate the needed speed differential between the two sides
+            // such that each side should arrive at the desired location at the same time
+            // by biasing the speed to one side or the other.
+            int initialLeftDelta = Math.abs( initialLeftPos-targetLeftPos );
+            int initialRightDelta = Math.abs( initialRightPos-targetRightPos );
+            int maxDelta = Math.max( initialLeftDelta, initialRightDelta );
+
+            // one or both speeds will be <= speed without exceeding speed.
+            double leftSpeed = speed * ((double)initialLeftDelta/(double)maxDelta);
+            double rightSpeed = speed * ((double)initialRightDelta/(double)maxDelta);
+
+            // Display it for the drive
+            opMode.telemetry.addData("Speed", "IS=%.04f", speed);
+            opMode.telemetry.addData("LS", "TS=%.04f CS=%.04f", leftSpeed, leftSpeed);
+            opMode.telemetry.addData("RS", "TS=%.04f CS=%.04f", rightSpeed, rightSpeed);
+            opMode.telemetry.addData("Tics", "LT=%7d RT=%7d", initialLeftDelta, initialRightDelta);
+            opMode.telemetry.update();
+
+            // pass target positions on to the motor controllers
+            leftMotor.setTargetPosition(targetLeftPos);
+            rightMotor.setTargetPosition(targetRightPos);
+
+            // Turn On RUN_TO_POSITION
+            leftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            // reset the timeout time and start motion.
+            runtime.reset();
+            leftMotor.setPower(Math.abs(leftSpeed));
+            rightMotor.setPower(Math.abs(rightSpeed));
+
+            // keep looping while we are still active, and there is time left, and both motors are running.
+            while ( opMode.opModeIsActive() &&
+                    (runtime.seconds() < timeoutS) &&
+                    (leftMotor.isBusy() && rightMotor.isBusy()) ) {
+
+                // calculate the current delta from target position
+                int curLeftDelta = Math.abs( leftMotor.getCurrentPosition()-targetLeftPos );
+                int curRightDelta = Math.abs( rightMotor.getCurrentPosition()-targetRightPos );
+                if ( 0 == curLeftDelta && 0 == curRightDelta ) {break;} // we have reached our target.
+
+                // calculate progress ratio in the range of 1.0 to 0.0 indicating how much of the distance is left to traverse
+                // check denominator to and assign value of 1.0 to avoid division by zero.
+                double leftProgressRatio = (0 != initialLeftDelta ?  ((double)curLeftDelta/(double)initialLeftDelta) : 0.0 );
+                double rightProgressRatio = (0 != initialRightDelta ?  ((double)curRightDelta/(double)initialRightDelta) : 0.0 );
+
+                // if one side or the other is at it's target location it's power will go to zero
+                // the side that is lagging behind the other will represent the max ratio.
+                double maxProgressRatio = Math.max( leftProgressRatio, rightProgressRatio );
+
+                // powerRamp is a simple multiplier for the final speed calc to reduce speed
+                // by linear ramp percentage from 10%-100% and then 100% back down to 10%
+                // of the requested speed.
+                double powerRamp = 0.1;
+                if ( maxProgressRatio < 0.25 ){ /**ramp power up from 10% to 100%*/
+                    powerRamp = 0.1 + (0.9 * maxProgressRatio/0.25);
+                } else if ( maxProgressRatio >= 0.75 ) { /**ramp power down from 100% to 10%*/
+                    powerRamp = 0.1 + (0.9 * (1.0-maxProgressRatio)/0.25);
+                } else { /**progress between 25% and 75% - hold powerRamp at 100%*/
+                    powerRamp = 1.0;
+                }
+
+                // re-calculate speed differential between the two sides based on progress towards the goal
+                // if both sides are progressing equally they will both maintain current power levels
+                // if one side is getting ahead it's power will be reduced by up to 100%, but hopefully only a small percentage
+                // as progress is balanced out, the power level will come back up
+                double newLeftSpeed = powerRamp * leftSpeed * (leftProgressRatio/maxProgressRatio);
+                double newRightSpeed = powerRamp * rightSpeed * (rightProgressRatio/maxProgressRatio);
+
+                // update motor speed based on latest position.
+                leftMotor.setPower(Math.abs(leftSpeed));
+                rightMotor.setPower(Math.abs(rightSpeed));
+
+                // Display it for the drive
+                opMode.telemetry.addData("Speed", "IS=%.04f", speed);
+                opMode.telemetry.addData("LS", "TS=%.04f CS=%.04f", leftSpeed, newLeftSpeed);
+                opMode.telemetry.addData("RS", "TS=%.04f CS=%.04f", rightSpeed, newRightSpeed);
+                opMode.telemetry.addData("Tics", "LT=%7d RT=%7d", curLeftDelta, curRightDelta);
+                opMode.telemetry.update();
+
+                /**update tick tracker with current positions*/
+                tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
+
+                // we may want to replace this idel() with sleep(50 or 100);
+                opMode.idle(); // give the system a moment as we wait for things to progress
+            }
+
+            // Stop all motion;
+            leftMotor.setPower(0);
+            rightMotor.setPower(0);
+
+            // Turn off RUN_TO_POSITION
+            leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+            opMode.sleep(100);   // optional pause after each move
+            opMode.idle();
+        }
+    }
+
     public void DriveStraight(double speed,
                              double distInches,
                              double timeoutS) throws InterruptedException {
         if (opMode.opModeIsActive()) {
-            DriveCore(speed, distInches, distInches, timeoutS);
+            EncoderDriveCore(speed, distInches, distInches, timeoutS);
             scTracker.moveOnCurentHeading(distInches);
+      /**
             RobotLog.ii("DriveStraight", "Error: %s, AE: %.04fd",
                     Vector2d.Subtract(tcTrack.coordinate,scTracker.coordinate).formatAsString(),
                     Math.toDegrees(tcTrack.dirRad-scTracker.direction));
+       */
             scTracker.setPositionAndDirection(tcTrack);
             opMode.sleep(Pause_Time);   // optional pause after each move
         }
@@ -273,11 +398,13 @@ public class DriveCommands {
             /**Turn to face the vortex*/
             if ( !Util.FuzzyZero(turnAngle, 0.5) ){
                 double dist = TurnCalc.Turn(Math.toDegrees(turnAngle));
-                DriveCore(speed, dist, -dist, timeoutS);
+                EncoderDriveCore(speed, dist, -dist, timeoutS);
                 scTracker.turnRelativeDeg(turnAngle);
+                /**
                 RobotLog.ii("EncoderTurnToDirectionDeg", "Error: %s, AE: %.04fd",
                         Vector2d.Subtract(tcTrack.coordinate,scTracker.coordinate).formatAsString(),
                         Math.toDegrees(tcTrack.dirRad-scTracker.direction));
+                 */
                 scTracker.setPositionAndDirection(tcTrack);
 
                 opMode.sleep(Pause_Time);   // optional pause after each move
@@ -291,12 +418,14 @@ public class DriveCommands {
         if (opMode.opModeIsActive()) {
 
             double dist = TurnCalc.Turn(turndeg);
-            DriveCore(speed, dist, -dist, timeoutS);
+            EncoderDriveCore(speed, dist, -dist, timeoutS);
 
             scTracker.turnRelativeDeg(turndeg);
+            /**
             RobotLog.ii("TurnRight", "Error: %s, AE: %.04fd",
                     Vector2d.Subtract(tcTrack.coordinate,scTracker.coordinate).formatAsString(),
                     Math.toDegrees(tcTrack.dirRad-scTracker.direction));
+             */
             scTracker.setPositionAndDirection(tcTrack);
             opMode.sleep(Pause_Time);   // optional pause after each move
         }
@@ -318,14 +447,16 @@ public class DriveCommands {
             leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
             double dist = TurnCalc.BreakTurnDeg(turndeg);
-            DriveCore(speed, dist, 0.0, timeoutS);
+            EncoderDriveCore(speed, dist, 0.0, timeoutS);
 
             leftMotor.setZeroPowerBehavior(zpmOld);
 
             scTracker.moveArcTurnRight(TurnCalc.WheelSpace, turndeg);
+            /**
             RobotLog.ii("BreakTurnRight", "Error: %s, AE: %.04fd",
                     Vector2d.Subtract(tcTrack.coordinate,scTracker.coordinate).formatAsString(),
                     Math.toDegrees(tcTrack.dirRad-scTracker.direction));
+             */
             scTracker.setPositionAndDirection(tcTrack);
 
             opMode.sleep(Pause_Time);   // optional pause after each move
@@ -347,14 +478,16 @@ public class DriveCommands {
             leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
             double dist = TurnCalc.BreakTurnDeg(turndeg);
-            DriveCore(speed, 0.0, dist, timeoutS);
+            EncoderDriveCore(speed, 0.0, dist, timeoutS);
 
             leftMotor.setZeroPowerBehavior(zpmOld);
 
             scTracker.moveArcTurnLeft(TurnCalc.WheelSpace, turndeg);
+            /**
             RobotLog.ii("BreakTurnLeft", "Error: %s, AE: %.04fd",
                     Vector2d.Subtract(tcTrack.coordinate,scTracker.coordinate).formatAsString(),
                     Math.toDegrees(tcTrack.dirRad-scTracker.direction));
+             */
             scTracker.setPositionAndDirection(tcTrack);
 
             opMode.sleep(Pause_Time);   // optional pause after each move
@@ -419,9 +552,11 @@ public class DriveCommands {
             rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             scTracker.turnRelativeDeg(turndeg);
             tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
+            /**
             RobotLog.ii("OldTurnRight", "Error: %s, DA: %.04fd",
                     Vector2d.Subtract(tcTrack.coordinate,scTracker.coordinate).formatAsString(),
                     Math.toDegrees(tcTrack.dirRad-scTracker.direction));
+             */
             scTracker.setPositionAndDirection(tcTrack);
             opMode.sleep(Pause_Time);   // optional pause after each move
         }
@@ -482,9 +617,11 @@ public class DriveCommands {
             rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             scTracker.moveOnCurentHeading(turndeg);
             tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
+            /**
             RobotLog.ii("OldTurnLeft", "Error: %s, DA: %.04fd",
                     Vector2d.Subtract(tcTrack.coordinate,scTracker.coordinate).formatAsString(),
                     Math.toDegrees(tcTrack.dirRad-scTracker.direction));
+             */
             scTracker.setPositionAndDirection(tcTrack);
             opMode.sleep(Pause_Time);   // optional pause after each move
         }
@@ -583,9 +720,11 @@ public class DriveCommands {
             rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
             scTracker.moveOnCurentHeading(distance);
+            /**
             RobotLog.ii("DriveStraight", "Error: %s, AE: %.04fd",
                     Vector2d.Subtract(tcTrack.coordinate,scTracker.coordinate).formatAsString(),
                     Math.toDegrees(tcTrack.dirRad-scTracker.direction));
+             */
             scTracker.setPositionAndDirection(tcTrack);
             opMode.sleep(Pause_Time);   // optional pause after each move
         }
@@ -619,9 +758,11 @@ public class DriveCommands {
             }
             tcTrack.updateTicks(leftMotor.getCurrentPosition(), rightMotor.getCurrentPosition());
             scTracker.setDirectionDeg(angle);
+            /**
             RobotLog.ii("DriveStraight", "Error: %s, AE: %.04fd",
                     Vector2d.Subtract(tcTrack.coordinate, scTracker.coordinate).formatAsString(),
                     Math.toDegrees(tcTrack.dirRad - scTracker.direction));
+             */
             scTracker.setPositionAndDirection(tcTrack);
             opMode.sleep(Pause_Time);   // optional pause after each move
         }
@@ -706,6 +847,92 @@ public class DriveCommands {
 
     }
 
+    public boolean OdsDriveStraightToWhiteLine( double speed, double maxDist, double timeoutS ){
+
+        boolean bFoundWhiteLine = false;
+
+        // Ensure that the opmode is still active
+        if (opMode.opModeIsActive() && 0.0 != maxDist ) {
+
+            // Determine initial and target positions
+            int initialLeftPos = leftMotor.getCurrentPosition();
+            int initialRightPos = rightMotor.getCurrentPosition();
+            int targetLeftPos = initialLeftPos + (int)(maxDist * COUNTS_PER_INCH);
+            int targetRightPos = initialRightPos + (int)(maxDist * COUNTS_PER_INCH);
+
+            // reset tracking to last known coordinate and direction just in case vuforia provided new info
+            tcTrack.initialize(scTracker, leftMotor.getCurrentPosition(), rightMotor.getCurrentPosition());
+
+            // pass target positions on to the motor controllers
+            leftMotor.setTargetPosition(targetLeftPos);
+            rightMotor.setTargetPosition(targetRightPos);
+
+            // Turn On RUN_TO_POSITION
+            leftMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            rightMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+            // reset the timeout time and start motion.
+            runtime.reset();
+            leftMotor.setPower(Math.abs(speed));
+            rightMotor.setPower(Math.abs(speed));
+
+            odsReadingRaw = ODS.getRawLightDetected();                   //update raw value (This function now returns a value between 0 and 5 instead of 0 and 1 as seen in the video)
+            odsReadingLinear = Math.pow(odsReadingRaw, -0.5);
+            double initialLight = odsReadingLinear;
+            opMode.telemetry.addData("ODS", "Linear: %.04f", initialLight);
+            opMode.telemetry.update();
+
+            // break mode will make sure we stop when we hit the line
+            DcMotor.ZeroPowerBehavior zpmOldLeft = leftMotor.getZeroPowerBehavior();
+            DcMotor.ZeroPowerBehavior zpmOldRight = rightMotor.getZeroPowerBehavior();
+            leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+            // keep looping while we are still active, and there is time left, and both motors are running.
+            while ( opMode.opModeIsActive() &&
+                    (runtime.seconds() < timeoutS) &&
+                    (leftMotor.isBusy() && rightMotor.isBusy()) ) {
+
+                /**update tick tracker with current positions*/
+                tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
+
+                // Display light levels
+                odsReadingRaw = ODS.getRawLightDetected();              //update raw value (This function now returns a value between 0 and 5 instead of 0 and 1 as seen in the video)
+                odsReadingLinear = Math.pow(odsReadingRaw, -0.5);
+                opMode.telemetry.addData("ODS", "Linear: %.04f", odsReadingLinear);
+                opMode.telemetry.update();
+                double currentLight = odsReadingLinear;
+                if ( currentLight >= 0.6 ) // this is just a guess could be anywhere above 0.4?
+                {
+                    bFoundWhiteLine = true;
+                    break;
+                }
+                // we may want to replace this idel() with sleep(50 or 100);
+                opMode.idle(); // give the system a moment as we wait for things to progress
+            }
+
+            // Stop all motion;
+            leftMotor.setPower(0);
+            rightMotor.setPower(0);
+
+            // Turn off RUN_TO_POSITION
+            leftMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+            /**update tick tracker with current positions*/
+            tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
+
+            opMode.sleep(Pause_Time);   // optional pause after each move
+            opMode.idle();
+
+            // safe to restore now...
+            leftMotor.setZeroPowerBehavior(zpmOldLeft);
+            rightMotor.setZeroPowerBehavior(zpmOldRight);
+        }
+        return bFoundWhiteLine;
+    }
+
+    // follow edge
     public void OdsDrive(double dist, double timeoutS) {
         int newLeftTarget;
         int newRightTarget;

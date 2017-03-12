@@ -47,7 +47,7 @@ public class Gyro {
     }
 
     public void addTelemetryData( LinearOpMode op ) {
-        op.telemetry.addData(TAG, "Gyro Heading = %d", getCurrentDeflectionDeg());
+        op.telemetry.addData(TAG, "Gyro Heading = %.04f", getCurrentDeflectionDeg());
     }
 
 }
