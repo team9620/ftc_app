@@ -98,7 +98,7 @@ public class AutoOpBlueCtrShoot2WheelsLegos extends LinearOpMode {
 
         /**Initialize SimpleCoordinateTracker with Blue Center position*/
         scTrack = new SimpleCoordinateTracker();
-        scTrack.setPositionAndDirectionDeg(Field.POSITION2, 180.0);
+        scTrack.setPositionAndDirectionDeg(Field.BLUE_POSITION2, 180.0);
 
         /**Initialize TickCountTracker*/
         tcTrack = new TickCountTracker();

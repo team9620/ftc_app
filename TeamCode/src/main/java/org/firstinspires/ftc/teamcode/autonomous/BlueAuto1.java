@@ -39,7 +39,7 @@ public class BlueAuto1 extends LinearOpMode{
 
         /**Initialize SimpleCoordinateTracker with Blue Center position*/
         scTrack = new SimpleCoordinateTracker();
-        scTrack.setPositionAndDirectionDeg(Field.POSITION2, 180.0);
+        scTrack.setPositionAndDirectionDeg(Field.BLUE_POSITION4, 135.0);
 
         /**Initialize TickCountTracker*/
         tcTrack = new TickCountTracker();
@@ -63,9 +63,14 @@ public class BlueAuto1 extends LinearOpMode{
         /**
          * calculate drive along x-axis 18 inches forward
          */
-        DirectionDistance move1 = new DirectionDistance( 180, 18.0);
-        Vector2d ShootPos = scTrack.CalculatePosition(move1); // calculates relative to current position
-        drive.DriveStraight(0.1, 18.0, 5.0);
+        //DirectionDistance move1 = new DirectionDistance( 135, 46.5);
+        //Vector2d ShootPos = scTrack.CalculatePosition(move1); // calculates relative to current position
+        drive.DriveStraight(0.2, 46.5, 5.0);
+        //drive.EncoderDrive(0.2, move1, 5.0);
+
+        double newdirection=180.0-Math.toDegrees(scTrack.direction);
+        drive.BreakTurnLeft(0.2, newdirection, 5.0);
+
 
         /** if there's any time left loop */
         while (opModeIsActive()) {

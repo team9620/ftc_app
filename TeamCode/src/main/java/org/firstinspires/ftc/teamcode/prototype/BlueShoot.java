@@ -154,7 +154,7 @@ public class BlueShoot extends LinearOpMode {
             Color.RGBToHSV((sensorRGB.red() * 255) / 800, (sensorRGB.green() * 255) / 800, (sensorRGB.blue() * 255) / 800, hsvValues);
             sleep(500);
             scTracker = new SimpleCoordinateTracker();
-            scTracker.setPositionAndDirectionDeg(Field.POSITION1, 180.0);
+            scTracker.setPositionAndDirectionDeg(Field.BLUE_POSITION1, 180.0);
             tcTrack = new TickCountTracker();
             tcTrack.initialize(scTracker, 0,0);
 
