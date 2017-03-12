@@ -88,9 +88,11 @@ public class TickCountTracker {
         this.coordinate.add(dx, dy);
 
         //record into to the robot log
+        /**
         RobotLog.ii("TickCountTracker", "Ticks[%d,&d] delta[%.04f,%.04f] DxDy[%.04f,%.04f] A,D[%.04fd,%.04f\" Dir[%.04f] Pos[%s]",
                 left, right, dLeft, dRight, dx, dy, Math.toDegrees(deflection), moveAvg,
                 Math.toDegrees(this.dirRad), coordinate.formatAsString());
+         */
 
         this.leftTicks = left;
         this.rightTicks = right;
