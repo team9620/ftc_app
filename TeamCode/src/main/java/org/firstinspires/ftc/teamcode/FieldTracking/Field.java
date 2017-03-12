@@ -46,9 +46,10 @@ public class Field {
     public static Vector2d BLUE_LEGOS_BEACON_XY = new Vector2d(-FAR_BEACON_OFFSET, +FIELD_HALF_WIDTH_D);
     public static Vector2d RED_GEARS_BEACON_XY = new Vector2d(-FIELD_HALF_WIDTH_D, -FAR_BEACON_OFFSET );
     public static Vector2d RED_TOOLS_BEACON_XY = new Vector2d(-FIELD_HALF_WIDTH_D, +FAR_BEACON_OFFSET );
-    public static Vector2d POSITION1 = new Vector2d(FIELD_HALF_WIDTH_D-9.0, -36.0 ); //left position
-    public static Vector2d POSITION2 = new Vector2d(FIELD_HALF_WIDTH_D-9.0,   0.0 ); //center position
-    public static Vector2d POSITION3 = new Vector2d(FIELD_HALF_WIDTH_D-9.0, +22.25); //right position
+    public static Vector2d BLUE_POSITION1 = new Vector2d(FIELD_HALF_WIDTH_D-9.0, -36.0 ); //left position
+    public static Vector2d BLUE_POSITION2 = new Vector2d(FIELD_HALF_WIDTH_D-9.0,   0.0 ); //center position
+    public static Vector2d BLUE_POSITION3 = new Vector2d(FIELD_HALF_WIDTH_D-9.0, +22.25); //right position
+    public static Vector2d BLUE_POSITION4 = new Vector2d(FIELD_HALF_WIDTH_D-10.25, +25.25); //right angled 135 degrees position
     // calculating this one requires understanding the position of the robot center relative to width and length.
     public static Vector2d RED_START_LEFT_XY = new Vector2d( -8.0, -FIELD_HALF_WIDTH_D + 9.0 );
 

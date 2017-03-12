@@ -63,7 +63,7 @@ public class TestColorRed extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
         scTracker = new SimpleCoordinateTracker();
-        scTracker.setPositionAndDirectionDeg(Field.POSITION1, 180.0);
+        scTracker.setPositionAndDirectionDeg(Field.BLUE_POSITION1,180);
         tcTrack = new TickCountTracker();
         tcTrack.initialize(scTracker, 0,0);
 

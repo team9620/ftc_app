@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.testops;
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.drivetrain.DriveCommands;
@@ -15,7 +15,7 @@ import org.firstinspires.ftc.teamcode.sensors.ODSSensor;
 /**
  *
  */
-@TeleOp(name = "Test: MR ODS Drive to line", group = "SensorTest")
+@Autonomous(name = "Test: MR ODS Drive to line", group = "SensorTest")
 //@Disabled
 public class AutoOpTestODSLineDrive extends LinearOpMode {
 
