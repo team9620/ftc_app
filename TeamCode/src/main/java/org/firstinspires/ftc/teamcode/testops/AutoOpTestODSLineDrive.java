@@ -3,17 +3,14 @@ package org.firstinspires.ftc.teamcode.testops;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
 import org.firstinspires.ftc.teamcode.drivetrain.DriveCommands;
 import org.firstinspires.ftc.teamcode.fieldtracking.Field;
-import org.firstinspires.ftc.teamcode.fieldtracking.SimpleCoordinateTracker;
-import org.firstinspires.ftc.teamcode.fieldtracking.TickCountTracker;
 import org.firstinspires.ftc.teamcode.fieldtracking.Vector2d;
 import org.firstinspires.ftc.teamcode.sensors.ODSSensor;
 
 /**
- *
+ * ROUS
  */
 @Autonomous(name = "Test: MR ODS Drive to line", group = "SensorTest")
 //@Disabled
@@ -27,16 +24,9 @@ public class AutoOpTestODSLineDrive extends LinearOpMode {
         ods.initializeForOpMode(this, hardwareMap);
 
         /**Initialize SimpleCoordinateTracker with Blue Center position*/
-        SimpleCoordinateTracker scTrack = new SimpleCoordinateTracker();
-        scTrack.setPositionAndDirectionDeg( new Vector2d(Field.BLUE_WHEELS_BEACON_XY).add( 6.0, 10.0 ), 180.0);
-
-        /**Initialize TickCountTracker*/
-        TickCountTracker tcTrack = new TickCountTracker();
-        tcTrack.initialize(scTrack, 0,0);
-
         /** Initialize DriveCommands*/
         DriveCommands drive = new DriveCommands();
-        drive.initializeForOpMode( this, hardwareMap, tcTrack, scTrack );
+        drive.initializeForOpMode( this, hardwareMap,  new Vector2d(Field.BLUE_WHEELS_BEACON_XY).add( 6.0, 10.0 ), 180.0 );
 
         /** Wait for the game to begin */
         telemetry.addData(">", "Press Play to start");
@@ -45,6 +35,13 @@ public class AutoOpTestODSLineDrive extends LinearOpMode {
         /** Wait for the game to start (driver presses PLAY) */
         waitForStart();
 
+        boolean bFoundWheelsWhiteLine = drive.OdsDriveStraightToWhiteLine(0.1, 16.0, 5.0);
+        if ( bFoundWheelsWhiteLine ){
+            telemetry.addData("OSD", "Found Line @ %s", drive.tcTrack.formatAsString());
+            telemetry.update();
+        }
+
+        /**
         boolean bFoundWhiteLine = false;
 
         // Determine new target position, and pass to motor controller
@@ -65,13 +62,16 @@ public class AutoOpTestODSLineDrive extends LinearOpMode {
             drive.rightMotor.setPower(0.1);
             drive.tcTrack.updateTicks(drive.leftMotor.getCurrentPosition(), drive.rightMotor.getCurrentPosition());
 
-            if ( !bFoundWhiteLine && ods.getLinearReading() > 0.6 ) {
+            if ( !bFoundWhiteLine && ods.ods.getLightDetected() > 0.3
+                    ) {
                 bFoundWhiteLine = true;
                 telemetry.addData("Line", "FoundLine @ %s", drive.tcTrack.coordinate.formatAsString());
-            } else if ( bFoundWhiteLine && ods.getLinearReading() < 0.6 ) {
+                telemetry.update();
+                break;
+            } else if ( bFoundWhiteLine && ods.ods.getLightDetected() < 0.3 ) {
                 bFoundWhiteLine = false;
                 telemetry.addData("Line", "LostLine @ %s", drive.tcTrack.coordinate.formatAsString());
-            } else if ( ods.getLinearReading() < 0.6 ) {
+            } else if ( ods.ods.getLightDetected() < 0.3 ) {
                 telemetry.addData("Line", "OnLine @ %s", drive.tcTrack.coordinate.formatAsString());
             }
 
@@ -93,6 +93,7 @@ public class AutoOpTestODSLineDrive extends LinearOpMode {
         drive.rightMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         drive.opMode.sleep(100);   // optional pause after each move
+         */
 
         while (opModeIsActive()){
             idle();

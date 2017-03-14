@@ -15,14 +15,10 @@ import com.qualcomm.robotcore.hardware.OpticalDistanceSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.RobotLog;
 
-import org.firstinspires.ftc.robotcore.external.Telemetry;
-import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.teamcode.drivetrain.DriveCommands;
 import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
 import org.firstinspires.ftc.teamcode.fieldtracking.DirectionDistance;
 import org.firstinspires.ftc.teamcode.fieldtracking.Field;
-import org.firstinspires.ftc.teamcode.fieldtracking.SimpleCoordinateTracker;
-import org.firstinspires.ftc.teamcode.fieldtracking.TickCountTracker;
 import org.firstinspires.ftc.teamcode.fieldtracking.Tracker;
 import org.firstinspires.ftc.teamcode.fieldtracking.Vector2d;
 import org.firstinspires.ftc.teamcode.fieldtracking.VuforiaTarget;
@@ -83,8 +79,6 @@ public class Blue1Becon extends LinearOpMode {
     static double odsReadingLinear;
     static double odsReadingLinear2;
 
-    public TickCountTracker tcTrack = null;
-    public SimpleCoordinateTracker scTracker = null;
     public Tracker vfTracker = null;
 
     @Override
@@ -211,13 +205,8 @@ public class Blue1Becon extends LinearOpMode {
 
             sleep(Pause_Time_int);
 
-            scTracker = new SimpleCoordinateTracker();
-            scTracker.setPositionAndDirectionDeg(Field.BLUE_POSITION1, 180.0);
-            tcTrack = new TickCountTracker();
-            tcTrack.initialize(scTracker, 0,0);
-
             DriveCommands Command = new DriveCommands();
-            Command.initializeForOpMode(this,hardwareMap, tcTrack,scTracker);
+            Command.initializeForOpMode(this,hardwareMap, Field.BLUE_POSITION1, 180.0);
 
             telemetry.addData(">","Activating ODS");
             telemetry.update();
@@ -338,9 +327,9 @@ public class Blue1Becon extends LinearOpMode {
                 Vector2d vDir = obs.getRobotDirVec();
                 DirectionDistance dir = vDir.asDirectionDistance();
                 RobotLog.ii("Vuforia Correction", "Error: %s, DA: %.04fd",
-                        Vector2d.Subtract(vPos,scTracker.coordinate).formatAsString(),
-                        Math.toDegrees(dir.dirRad-scTracker.direction));
-                scTracker.setPositionAndDirectionRad(vPos, dir.dirRad);
+                        Vector2d.Subtract(vPos,Command.scTrack.coordinate).formatAsString(),
+                        Math.toDegrees(dir.dirRad-Command.scTrack.direction));
+                Command.scTrack.setPositionAndDirectionRad(vPos, dir.dirRad);
             }
 
             Command.DriveStraight(DRIVE_SPEED, 20, 10);

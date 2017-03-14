@@ -83,8 +83,11 @@ public class DirectionDistance {
         return new Vector2d(Math.cos(this.dirRad)* this.distIn, Math.sin(this.dirRad)* this.distIn);
     }
 
-    public static Vector2d CreateVector2d(double dirDeg, double distIn){
-        double dirRad = Math.toRadians(dirDeg);
+    public static Vector2d CreateVector2dRad(double dirRad, double distIn){
         return new Vector2d(Math.cos(dirRad)* distIn, Math.sin(dirRad)* distIn);
+    }
+
+    public static Vector2d CreateVector2dDeg(double dirDeg, double distIn){
+        return CreateVector2dRad(Math.toRadians(dirDeg),distIn);
     }
 }

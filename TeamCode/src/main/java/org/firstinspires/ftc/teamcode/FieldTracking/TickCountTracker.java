@@ -13,7 +13,7 @@ public class TickCountTracker {
     public static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * PI);
     public static final double ROBOT_WHEEL_WIDTH = 14.5;        //Width in inches from left drive wheel center to right drive wheel center
 
-    static final double   ADJACENT_SQUARED     = (ROBOT_WHEEL_WIDTH);  //Wheel width squared is used for adjacent calc of deflection
+    static final double   ADJACENT_SQUARED     = (ROBOT_WHEEL_WIDTH*ROBOT_WHEEL_WIDTH);  //Wheel width squared is used for adjacent calc of deflection
 
     protected int leftTicks;
     protected int rightTicks;
@@ -51,7 +51,78 @@ public class TickCountTracker {
     public void initializeDeg(double xin, double yin, double ccwDirDeg, int left, int right) {
         initializeRad(xin, yin, Math.toRadians(ccwDirDeg), left, right);
     }
+
     public void updateTicks(int left, int right) {
+
+        int dtLeft = left - this.leftTicks;
+        int dtRight = right - this.rightTicks;
+
+        RobotLog.ii("TickCountTracker", "updateTicks CT[%d,%d] DT[%d,%d]",left, right, dtLeft, dtRight);
+
+        //calculate distance traveled by each wheel
+        double distLeft = ((double)dtLeft)/ COUNTS_PER_INCH;
+        double distRight = ((double)dtRight) / COUNTS_PER_INCH;
+
+        SimpleCoordinateTracker calc = new SimpleCoordinateTracker().setPositionAndDirection(this);
+
+        if ( dtLeft == dtRight ){ // linear travel
+
+            //calculate the average distance moved(centroid or robot).
+            double moveAvg = ((distLeft + distRight)/2.0);
+            calc.moveOnCurentHeading(moveAvg);
+            Vector2d deltaXY = DirectionDistance.CreateVector2dRad(calc.direction, moveAvg);
+            RobotLog.ii("TickCountTracker", "\tLinearTravel %s %s", deltaXY.formatAsString(), deltaXY.asDirectionDistance().formatAsString());
+
+        } else { // arc travel
+
+            boolean bTurnSide = (Math.abs(distRight) > Math.abs(distLeft));
+            double L1 = (bTurnSide ? distLeft : distRight);
+            double L2 = (bTurnSide ? distRight : distLeft);
+            double D = ROBOT_WHEEL_WIDTH;
+
+            double R1 = (L1*D)/(L2-L1);
+            double R2 = (L2*D)/(L2-L1);
+            double RC = (R1+R2)/2.0; // locate center of robot rotation radius
+            double thetaRad = L2/Math.abs(R2);
+
+
+            RobotLog.ii("TickCountTracker", "\tTheta: %.08fd R1: %.08f, R2: %.08f, RC: %.08f", Math.toDegrees(thetaRad), R1, R2, RC );
+
+            if ( bTurnSide ) { // true is turn left
+
+                calc.moveArcTurnLeftRad( Math.abs(RC), thetaRad );
+
+                // calculate new coordinate and new robot direction
+                Vector2d deltaXY = Vector2d.Subtract(calc.coordinate, this.coordinate);
+                double deltaAng = Util.OptomizeAngleNegPi_PosPi(calc.direction-this.dirRad);
+
+                RobotLog.ii("TickCountTracker", "\tArcLeft Delta:%.08fd %s", Math.toDegrees(deltaAng), deltaXY.formatAsString());
+
+            } else { // false is turn right
+
+                calc.moveArcTurnRightRad( Math.abs(RC), thetaRad );
+
+                // calculate new coordinate and new robot direction
+                Vector2d deltaXY = Vector2d.Subtract(calc.coordinate, this.coordinate);
+                double deltaAng = Util.OptomizeAngleNegPi_PosPi(calc.direction-this.dirRad);
+
+                // update internal data
+                RobotLog.ii("TickCountTracker", "\tArcRight Delta:%.08fd %s", Math.toDegrees(deltaAng), deltaXY.formatAsString());
+            }
+        }
+
+        // update internal data
+        this.coordinate.set( calc.coordinate );
+        this.dirRad = calc.direction;
+
+        RobotLog.ii("TickCountTracker", "\tNewPos %s", this.formatAsString());
+
+        // update previous ticks count
+        this.leftTicks = left;
+        this.rightTicks = right;
+    }
+
+    public void Old_updateTicks(int left, int right) {
 
         //calculate distance traveled by each wheel
         double dLeft = ((double) (left - this.leftTicks)) / COUNTS_PER_INCH;

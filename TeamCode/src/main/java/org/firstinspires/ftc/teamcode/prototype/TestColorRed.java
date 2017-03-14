@@ -18,8 +18,6 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.teamcode.drivetrain.DriveCommands;
 import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
 import org.firstinspires.ftc.teamcode.fieldtracking.Field;
-import org.firstinspires.ftc.teamcode.fieldtracking.SimpleCoordinateTracker;
-import org.firstinspires.ftc.teamcode.fieldtracking.TickCountTracker;
 import org.firstinspires.ftc.teamcode.fieldtracking.TurnCalc;
 import org.firstinspires.ftc.teamcode.sensors.EvaluateColorSensor;
 import org.firstinspires.ftc.teamcode.sensors.eColorState;
@@ -57,18 +55,12 @@ public class TestColorRed extends LinearOpMode {
 
     static final double UP = .95;
     static final double DOWN = .75;
-    public TickCountTracker tcTrack = null;
-    public SimpleCoordinateTracker scTracker = null;
 
     @Override
     public void runOpMode() throws InterruptedException {
-        scTracker = new SimpleCoordinateTracker();
-        scTracker.setPositionAndDirectionDeg(Field.BLUE_POSITION1,180);
-        tcTrack = new TickCountTracker();
-        tcTrack.initialize(scTracker, 0,0);
 
         DriveCommands Command = new DriveCommands();
-        Command.initializeForOpMode(this,hardwareMap, tcTrack,scTracker);
+        Command.initializeForOpMode(this,hardwareMap, Field.BLUE_POSITION1,180);
         gyro = (ModernRoboticsI2cGyro) hardwareMap.gyroSensor.get("gyro");
 
         telemetry.addData(">", "Calibrating Gyro");    //

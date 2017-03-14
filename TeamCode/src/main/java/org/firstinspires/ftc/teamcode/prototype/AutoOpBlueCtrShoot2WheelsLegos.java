@@ -7,10 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.drivetrain.DriveCommands;
 import org.firstinspires.ftc.teamcode.fieldtracking.DirectionDistance;
 import org.firstinspires.ftc.teamcode.fieldtracking.Field;
-import org.firstinspires.ftc.teamcode.fieldtracking.SimpleCoordinateTracker;
-import org.firstinspires.ftc.teamcode.fieldtracking.TickCountTracker;
 import org.firstinspires.ftc.teamcode.fieldtracking.Tracker;
-import org.firstinspires.ftc.teamcode.fieldtracking.Util;
 import org.firstinspires.ftc.teamcode.fieldtracking.Vector2d;
 import org.firstinspires.ftc.teamcode.fieldtracking.VuforiaTarget;
 import org.firstinspires.ftc.teamcode.sensors.ColorSensor;
@@ -27,20 +24,16 @@ import org.firstinspires.ftc.teamcode.sensors.ODSSensor;
  * Then on to the other wall to the legos target for same.
  * finally it backs up to hit the ball and park on the ramp.
  */
-@Autonomous(name="AutoOp : Blue.Center.Shoot2.Wheels.Legos", group="Autonomous")
+@Autonomous(name="AutoOp : Blue.Ctr.Shoot2.Wheels.Legos", group="Autonomous")
 //@Disabled
 public class AutoOpBlueCtrShoot2WheelsLegos extends LinearOpMode {
 
-    public static final String TAG = "AutoOp : Blue.Center.Shoot2.Wheels.Legos";
+    public static final String TAG = "AutoOp : Blue.Ctr.Shoot2.Wheels.Legos";
 
     public static final String TAG_INIT = "INIT";
 
     // vuforia field position tracker
     Tracker vfTrack = null;
-    // simple field position tracker
-    SimpleCoordinateTracker scTrack = null;
-    // tick count tracker.
-    TickCountTracker tcTrack = null;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -97,16 +90,9 @@ public class AutoOpBlueCtrShoot2WheelsLegos extends LinearOpMode {
         vfTrack.intializefunction(telemetry, Tracker.PhoneOnBot);
 
         /**Initialize SimpleCoordinateTracker with Blue Center position*/
-        scTrack = new SimpleCoordinateTracker();
-        scTrack.setPositionAndDirectionDeg(Field.BLUE_POSITION2, 180.0);
-
-        /**Initialize TickCountTracker*/
-        tcTrack = new TickCountTracker();
-        tcTrack.initialize(scTrack, 0,0);
-
         /** Initialize DriveCommands*/
         DriveCommands drive = new DriveCommands();
-        drive.initializeForOpMode( this, hardwareMap, tcTrack, scTrack );
+        drive.initializeForOpMode( this, hardwareMap, Field.BLUE_POSITION2, 180.0);
 
         /** Wait for the game to begin */
         telemetry.addData(">", "Press Play to start");
@@ -126,7 +112,7 @@ public class AutoOpBlueCtrShoot2WheelsLegos extends LinearOpMode {
          * calculate drive along x-axis 18 inches forward
          */
         DirectionDistance move1 = new DirectionDistance( -180, 18.0);
-        Vector2d ShootPos = scTrack.CalculatePosition(move1); // calculates relative to current position
+        Vector2d ShootPos = drive.scTrack.CalculatePosition(move1); // calculates relative to current position
         drive.DriveStraight(0.1, 18.0, 5.0);
 
         /**
@@ -139,7 +125,7 @@ public class AutoOpBlueCtrShoot2WheelsLegos extends LinearOpMode {
          * calculate turn and drive to optimal shoot location.
          * */
         // when subtracting vectors it is always head-tail.
-        DirectionDistance observeBlueCenterVortex = Vector2d.Subtract( Field.BLUE_CENTER_VORTEX_XY, tcTrack.coordinate).asDirectionDistance();
+        DirectionDistance observeBlueCenterVortex = Vector2d.Subtract( Field.BLUE_CENTER_VORTEX_XY, drive.tcTrack.coordinate).asDirectionDistance();
         //Turn to face the vortex and drive to shoot position
         drive.EncoderDrive( 0.1, observeBlueCenterVortex, 10.0 );
 
@@ -151,23 +137,23 @@ public class AutoOpBlueCtrShoot2WheelsLegos extends LinearOpMode {
          * calculate turn and drive to beacon approach.
          * */
         Vector2d faceWheelsOffsetPos = new Vector2d( Field.BLUE_WHEELS_BEACON_XY ).add( -10, -10 );
-        DirectionDistance driveToWheels = Vector2d.Subtract( faceWheelsOffsetPos, tcTrack.coordinate).asDirectionDistance(); // head-tail
+        DirectionDistance driveToWheels = Vector2d.Subtract( faceWheelsOffsetPos, drive.tcTrack.coordinate).asDirectionDistance(); // head-tail
         //Turn and drive to next location for approach to wheels target
         drive.EncoderDrive( 0.1, driveToWheels, 10.0 );
 
         /**update tracking from vuforia observation*/
         VuforiaTarget obs = vfTrack.updateAndGetCurrentObservation();
         if ( null != obs ) {
-            scTrack.setPositionAndDirection(obs);
-            tcTrack.initialize(scTrack, drive.leftMotor.getCurrentPosition(), drive.rightMotor.getCurrentPosition());
+            drive.scTrack.setPositionAndDirection(obs);
+            drive.tcTrack.initialize(drive.scTrack, drive.leftMotor.getCurrentPosition(), drive.rightMotor.getCurrentPosition());
         }
 
         // calculate appropriate turn to be facing parallel to the wall in the -x direction
-        double breakLeftDeltaDeg = 180.0 - Math.toDegrees(scTrack.direction);
+        double breakLeftDeltaDeg = 180.0 - Math.toDegrees(drive.scTrack.direction);
         drive.BreakTurnLeft(0.1, breakLeftDeltaDeg, 10.0);
 
         // calculate distance to line from our current x location
-        double xWheelsLineDist = Field.BLUE_WHEELS_BEACON_XY.x - scTrack.coordinate.x;
+        double xWheelsLineDist = Field.BLUE_WHEELS_BEACON_XY.x - drive.scTrack.coordinate.x;
         drive.DriveStraight(0.1, xWheelsLineDist, 10.0);
 
         // this is where we would use osd to look for the line as we drive.  That means a special
@@ -176,7 +162,7 @@ public class AutoOpBlueCtrShoot2WheelsLegos extends LinearOpMode {
         // check color
         if ( color.getColor() && !color.isBlue() ){
             // optional move forward to other side of beacon
-            double xBeaconOtherSide = (Field.BLUE_WHEELS_BEACON_XY.x+(4.5/2.0)) - scTrack.coordinate.x;
+            double xBeaconOtherSide = (Field.BLUE_WHEELS_BEACON_XY.x+(4.5/2.0)) - drive.scTrack.coordinate.x;
             drive.DriveStraight(0.1, xBeaconOtherSide, 10.0);
         }
         // safety check check color
@@ -187,7 +173,7 @@ public class AutoOpBlueCtrShoot2WheelsLegos extends LinearOpMode {
         //Calculate next move - this is a shortcut because it is an example
         // You need ot stop short, loook for the line, then do similar calcs as above
         DirectionDistance legosBeaconApproach = Vector2d
-                .Subtract(Field.BLUE_LEGOS_BEACON_XY, scTrack.coordinate)
+                .Subtract(Field.BLUE_LEGOS_BEACON_XY, drive.scTrack.coordinate)
                 .add( -3.0, 0.0 )
                 .asDirectionDistance();
         //Turn and drive to next location for approach to wheels target

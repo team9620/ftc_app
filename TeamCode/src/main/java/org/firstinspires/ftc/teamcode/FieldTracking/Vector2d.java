@@ -25,7 +25,7 @@ public class Vector2d {
     public Vector2d() {x = 0.0; y =0.0; }
 
     /**copy constructor initializes the object with values from the other object*/
-    public Vector2d (final Vector2d other) { x = other.x; y = other.y; }
+    public Vector2d(final Vector2d other) { x = other.x; y = other.y; }
 
     /**value constructor initializes the object with provided x,y values*/
     public Vector2d(double xin, double yin) {x = xin; y = yin; }
@@ -60,14 +60,22 @@ public class Vector2d {
         this.y += yin;
         return this;
     }
-/**Add other vector to this vector*/
+
+    /**Add other vector to this vector*/
     public Vector2d add (final Vector2d other){
         return add(other.x, other.y);
     }
-    /**Subtract rhs from lhs  to produce a 3rd vector as result*/
-    public static Vector2d add(final Vector2d lhs, final Vector2d rhs){
+
+    /**Add rhs to lhs to produce a 3rd vector as result*/
+    public static Vector2d Add(final Vector2d lhs, final Vector2d rhs){
         return new Vector2d(lhs).add(rhs);
     }
+
+    /**Returns a copy of self with other added*/
+    public Vector2d added(final Vector2d other) { return new Vector2d(this).add(other); }
+
+    /**Returns a copy of self with other added*/
+    public Vector2d added( double xin, double yin) { return new Vector2d(this).add(xin,yin); }
 
     /**Subtract other vector from this result*/
     public Vector2d subtract(final Vector2d other){
@@ -75,9 +83,20 @@ public class Vector2d {
         this.y -= other.y;
         return this;
     }
+
+    /**Returns a copy of self with other subtracted*/
+    public Vector2d subtracted(final Vector2d other){
+        return new Vector2d(this).subtract(other);
+    }
+
     /**Subtract rhs from lhs to produce a 3rd vector as result*/
     public static Vector2d Subtract ( final Vector2d lhs, final Vector2d rhs) {
         return new Vector2d(lhs).subtract(rhs);
+    }
+
+    /**Returns a copy of self multiplied by factor*/
+    public Vector2d multiplied( double factor ){
+        return new Vector2d( this.x * factor, this.y * factor);
     }
 
     /**
@@ -137,9 +156,33 @@ public class Vector2d {
      * @param other the other vector with whom the dot product is to be formed
      * @return the cross product of this vector and another.
      */
-    public double crossProduct ( final Vector2d other){
+    public double crossProduct ( final Vector2d other ){
         double result = ((this.x*other.y)-(this.y*other.x));
         return result;
+    }
+
+    /**Returns a new vector perpendicular to self in the clockwise (RHS) direction*/
+    public Vector2d PerpendicularCW()
+    {
+        return new Vector2d(-this.y, this.x);
+    }
+
+    /**Returns a new vector perpendicular to self in the clockwise (RHS) direction*/
+    public Vector2d PerpendicularCCW()
+    {
+        return new Vector2d(this.y, -this.x);
+    }
+
+    /**Returns a new unit vector at the requested xAxis ccw direction in degrees */
+    public static Vector2d UnitVectorDeg( double ccwDirectionDeg )
+    {
+        return UnitVectorRad( Math.toRadians(ccwDirectionDeg) );
+    }
+
+    /**Returns a new unit vector at the requested xAxis ccw direction in radians */
+    public static Vector2d UnitVectorRad( double ccwDirectionRad )
+    {
+        return new Vector2d(Math.sin(ccwDirectionRad), Math.cos(ccwDirectionRad));
     }
 
     /**Useful helper function*/
@@ -148,21 +191,29 @@ public class Vector2d {
         return(delta <= tol);
     }
 
-    /**Rottes a copy of this vector by the indicated ccw angel*/
-    public Vector2d rotatedByCCWAngle(double ccwAngleDeg){
-        Vector2d copy = new Vector2d(this);
-        return copy.rotateByCCWAngle(ccwAngleDeg);
+    /**Returns a copy of self rotated by the provided ccwAngle in degrees*/
+    public Vector2d rotatedByCCWAngleDeg(double ccwAngleDeg){
+        return new Vector2d(this).rotateByCCWAngleDeg(ccwAngleDeg);
+    }
+
+    /**Returns a copy of self rotated by the provided ccwAngle in radians*/
+    public Vector2d rotatedByCCWAngleRad(double ccwAngleRad){
+        return new Vector2d(this).rotateByCCWAngleRad(ccwAngleRad);
+    }
+
+    /**Rotates this vector by the indicated ccwAngle in degrees*/
+    public Vector2d rotateByCCWAngleDeg(double ccwAngleDeg){
+        return rotateByCCWAngleRad(Math.toRadians(ccwAngleDeg));
     }
 
     /**
-     * Rotates this vector by the indicated ccw angel
+     * Rotates this vector by the indicated ccwAngel in radins
      * to rotate a 2d xy vecotr by angle f
      *
      * x' = x cos f - y sin f
      * y' = y cos f + x sin f
      */
-    public Vector2d rotateByCCWAngle(double ccwAngleDeg){
-        double ccwAngleRad = Math.toRadians(ccwAngleDeg);
+    public Vector2d rotateByCCWAngleRad(double ccwAngleRad){
         double xp = this.x * Math.cos(ccwAngleRad) - this.y * Math.sin(ccwAngleRad);
         double yp = this.y * Math.cos(ccwAngleRad) - this.x * Math.sin(ccwAngleRad);
         this.x = xp;

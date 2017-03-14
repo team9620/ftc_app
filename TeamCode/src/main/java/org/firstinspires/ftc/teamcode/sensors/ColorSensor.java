@@ -40,8 +40,6 @@ public class ColorSensor extends EvaluateColorSensor {
         op.telemetry.addData(TAG, "Initializing Color Sensor");
         op.telemetry.update();
 
-        resetColor();
-
         // get a reference to the RelativeLayout so we can change the background
         // color of the Robot Controller app to match the hue detected by the RGB sensor.
 
@@ -80,12 +78,14 @@ public class ColorSensor extends EvaluateColorSensor {
         // change the background color to match the color detected by the RGB sensor.
         // pass a reference to the hue, saturation, and value array as an argument
         // to the HSVToColor method.
-
+        /**
         relativeLayout.post(new Runnable() {
             public void run() {
                 relativeLayout.setBackgroundColor(Color.HSVToColor(0xff, values));
             }
         });
+         */
+        resetColor();
 
         addTelemetryData(op);
         op.telemetry.update();
