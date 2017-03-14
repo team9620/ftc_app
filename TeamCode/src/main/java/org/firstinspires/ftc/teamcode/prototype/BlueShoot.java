@@ -17,8 +17,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.drivetrain.DriveCommands;
 import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
 import org.firstinspires.ftc.teamcode.fieldtracking.Field;
-import org.firstinspires.ftc.teamcode.fieldtracking.SimpleCoordinateTracker;
-import org.firstinspires.ftc.teamcode.fieldtracking.TickCountTracker;
 
 /**
  * Created by Connor on 2/9/2017.
@@ -54,8 +52,6 @@ public class BlueShoot extends LinearOpMode {
 
     static final double UP = .3;
     static final double DOWN = .9;
-    public TickCountTracker tcTrack = null;
-    public SimpleCoordinateTracker scTracker = null;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -153,13 +149,9 @@ public class BlueShoot extends LinearOpMode {
             // convert the RGB values to HSV values.
             Color.RGBToHSV((sensorRGB.red() * 255) / 800, (sensorRGB.green() * 255) / 800, (sensorRGB.blue() * 255) / 800, hsvValues);
             sleep(500);
-            scTracker = new SimpleCoordinateTracker();
-            scTracker.setPositionAndDirectionDeg(Field.BLUE_POSITION1, 180.0);
-            tcTrack = new TickCountTracker();
-            tcTrack.initialize(scTracker, 0,0);
 
             DriveCommands Command = new DriveCommands();
-            Command.initializeForOpMode(this,hardwareMap, tcTrack,scTracker);
+            Command.initializeForOpMode(this,hardwareMap, Field.BLUE_POSITION1, 180.0);
             // loop and read the RGB data.
             // Note we use opModeIsActive() as our loop condition because it is an interruptible method.
 

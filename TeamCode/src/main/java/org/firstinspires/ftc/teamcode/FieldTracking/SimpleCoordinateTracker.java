@@ -24,9 +24,16 @@ public class SimpleCoordinateTracker {
         this.coordinate = new Vector2d(0.0,0.0);
     }
 
+    /**copy constructor intializes the object with a copy of other*/
+    public SimpleCoordinateTracker(final SimpleCoordinateTracker other) {
+        this.direction = other.direction;
+        this.coordinate = new Vector2d(other.coordinate);
+    }
+
+
     /**Format robot coordinate position and direction as a string*/
     public String formatAsString(){
-        return String.format("Pos: %s Dir:%.04f)", this.direction, this.coordinate.formatAsString());
+        return String.format("%s -> %.08fd", this.coordinate.formatAsString(), Math.toDegrees(this.direction));
     }
 
     public SimpleCoordinateTracker setPosition( double x, double y ){this.coordinate = new Vector2d(x, y);
@@ -104,101 +111,60 @@ public class SimpleCoordinateTracker {
         return arcPoint;
     }
 
-    static public Vector2d CalculateArcCenterLeft( final Vector2d startPoint, double arcRadius, double xAxisRelativeCCWStartDirection ){
-        /**
-         * to calculate the radial center of the arc, we need the starting point of the arc and
-         * the tangent direction of the arc at that starting point.  From that we can calculate
-         * the perpendicular direct, multiply by the arc radius adn add that value to the current
-         * coordinate to get the center point.
-         *
-         * In 2D the perpendicular direction is the revers of direction components where x becomes y
-         * and y becomes x using a unit vector so to simplify our calc we just swap sin for cos
-         * in our direction calc before multiplying the distance
-         *
-         * Because we are offsetting left we need to multiply by a negative arc radius to
-         * */
-        Vector2d arcCenter = new Vector2d(startPoint);
-        arcCenter.x += ( Math.sin(xAxisRelativeCCWStartDirection) * -Math.abs(arcRadius));
-        arcCenter.y += ( Math.cos(xAxisRelativeCCWStartDirection) * -Math.abs(arcRadius));
-        return arcCenter;
-    }
-
-    /**
+     /**
      * For left arc turn, the radial center point is to the lef of our current coordinate,
      * and the radial direction is + 90 Degrees from our Current robot direction
      * We can then add the deflection angle +- will work to get both our
      * final robot direction and the new radial direction.
      *
      * */
-    public void moveArcTurnLeft( double arcRadius, double deflectionAngleLeft ) {
+    public void moveArcTurnLeftDeg( double arcRadius, double deflectionAngleLeft ) {
+            moveArcTurnLeftRad(arcRadius, Math.toRadians(deflectionAngleLeft));
+    }
+    public void moveArcTurnLeftRad( double arcRadius, double deflectionAngleLeft ) {
 
-        // remember previous values for logging
-        double oldDir = this.direction;
-        Vector2d oldPos = new Vector2d(this.coordinate);
+        // convert deflection angle to ccw radians
+        double   radCCWDeflection = deflectionAngleLeft;
+        // calculate unit vector tangent to arc based on current robot direction.
+        Vector2d thisDir = Vector2d.UnitVectorRad(this.direction);
+        Vector2d radDir = thisDir.PerpendicularCCW();
+        // calculate center of circle with radius R
+        Vector2d arcCenter = radDir.multiplied(Math.abs(arcRadius));
+        // calculate new arc point as inverse of center vector rotated by ccw deflection angle
+        Vector2d newArcPoint = arcCenter.multiplied(-1.0).rotateByCCWAngleRad(radCCWDeflection);
 
-        // convert deflection angle to radians
-        double   radDeflectionAngle = Math.toRadians(deflectionAngleLeft);
-
-        // calculate the arc radial center point on the field
-        Vector2d arcCenter = CalculateArcCenterLeft(this.coordinate, arcRadius, this.direction );
-
-        // calculate the radial direction from arc radial center to the current coordinate
-        double   currentRadialDirection = this.direction - Util.HALF_PI;
-
-        // calculate the new radial direction once deflection is applied.
-        double   newRadialDirection = currentRadialDirection + radDeflectionAngle;
-
-        // calculate new coordinate and new robot direction
-        this.setPosition( CalculatePointOnCircle( arcCenter, arcRadius, newRadialDirection ) );
-
-        // add radial deflection angle because it is signed consistently with CCW rotation
-        this.setDirectionRad( Util.OptomizeAngleZero_TwoPi( this.direction + radDeflectionAngle ) );
+        // the new coordinate is the sum of current pos, arc center, and new radial point
+        this.coordinate.add(arcCenter).add(newArcPoint);
+        // new direction = cur direction + ccwDeflection angle
+        this.direction = Util.OptomizeAngleZero_TwoPi( this.direction + radCCWDeflection );
     }
 
     /**
-     * to calculate the radial center of the arc, we need the starting point of the arc and
-     * the tangent direction of the arc at that starting point.  From that we can calculate
-     * the perpendicular direct, multiply by the arc radius adn add that value to the current
-     * coordinate to get the center point.
-     *
-     * In 2D the perpendicular direction is the revers of direction components where x becomes y
-     * and y becomes x using a unit vector so to simplify our calc we just swap sin for cos
-     * in our direction calc before multiplying the distance
-     *
-     * To offset right we multiply by positive arcRadius.
-     * */
-    static public Vector2d CalculateArcCenterRight( final Vector2d startPoint, double arcRadius, double xAxisRelativeCCWStartDirection ){
-        Vector2d arcCenter = new Vector2d(startPoint);
-        arcCenter.x += ( Math.sin(xAxisRelativeCCWStartDirection) * Math.abs(arcRadius));
-        arcCenter.y += ( Math.cos(xAxisRelativeCCWStartDirection) * Math.abs(arcRadius));
-        return arcCenter;
-    }
-
-    /**
-     * For left arc turn, the radial center point is to the lef of our current coordinate,
+     * For right arc turn, the radial center point is to the right of our current coordinate,
      * and the radial direction is + 90 Degrees from our Current robot direction
      * We can then add the deflection angle +- will work to get both our
      * final robot direction and the new radial direction.
      *
      * */
-    public void moveArcTurnRight( double arcRadius, double deflectionAngleRight ) {
-        // convert deflection angle to radians
-        double   radDeflectionAngle = Math.toRadians(deflectionAngleRight);
+    public void moveArcTurnRightDeg( double arcRadius, double deflectionAngleRight ) {
+        moveArcTurnRightRad(arcRadius, Math.toRadians(deflectionAngleRight));
+    }
+    public void moveArcTurnRightRad( double arcRadius, double deflectionAngleRight ) {
 
-        // calculate the arc radial center point on the field
-        Vector2d arcCenter = CalculateArcCenterRight(this.coordinate, arcRadius, this.direction );
+        // convert deflection angle to ccw radians
+        double   radCCWDeflection = -deflectionAngleRight;
+        // calculate unit vector tangent to arc based on current robot direction.
+        Vector2d thisDir = Vector2d.UnitVectorRad(this.direction);
+        Vector2d radDir = thisDir.PerpendicularCW();
+        // calculate center of circle with radius R
+        Vector2d arcCenter = radDir.multiplied(Math.abs(arcRadius));
+        // calculate new arc point as inverse of center vector rotated by ccw deflection angle
+        Vector2d newArcPoint = arcCenter.multiplied(-1.0).rotateByCCWAngleRad(radCCWDeflection);
 
-        // calculate the radial direction from arc radial center to the current coordinate
-        double   currentRadialDirection = this.direction + Util.HALF_PI;
-
-        // calculate the new radial direction once deflection is applied.
-        double   newRadialDirection = currentRadialDirection + radDeflectionAngle;
-
-        // calculate new coordinate and new robot direction
-        this.setPosition( CalculatePointOnCircle( arcCenter, arcRadius, newRadialDirection ) );
-
-        // subtract radial deflection angle because it is signed for reverse CW rotation
-        this.setDirectionRad( Util.OptomizeAngleZero_TwoPi( this.direction - radDeflectionAngle ) );
+        // the new coordinate is the sum of current pos, arc center, and new radial point
+        this.coordinate.add(arcCenter).add(newArcPoint);
+        // new direction = cur direction + ccwDeflection angle
+        this.direction = Util.OptomizeAngleZero_TwoPi( this.direction + radCCWDeflection );
     }
 
     /**calculates new position from current without changing current position*/

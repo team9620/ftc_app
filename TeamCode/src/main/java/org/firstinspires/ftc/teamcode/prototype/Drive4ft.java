@@ -11,8 +11,6 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.drivetrain.ROUSAutoHardware_WithServos;
 import org.firstinspires.ftc.teamcode.drivetrain.DriveCommands;
 import org.firstinspires.ftc.teamcode.fieldtracking.Field;
-import org.firstinspires.ftc.teamcode.fieldtracking.SimpleCoordinateTracker;
-import org.firstinspires.ftc.teamcode.fieldtracking.TickCountTracker;
 
 /**
  * Created by Connor on 2/9/2017.
@@ -51,10 +49,8 @@ public class Drive4ft extends LinearOpMode {
     // odsReadingRaw to the power of (-0.5)
     static double odsReadingLinear;
 
-    public TickCountTracker tcTrack = null;
-    public SimpleCoordinateTracker scTracker = null;
-        @Override
-        public void runOpMode() throws InterruptedException {
+    @Override
+    public void runOpMode() throws InterruptedException {
 
             gyro = (ModernRoboticsI2cGyro) hardwareMap.gyroSensor.get("gyro");
 
@@ -73,13 +69,9 @@ public class Drive4ft extends LinearOpMode {
             telemetry.addData(">", "Gyro is Calibrated.");    //
             telemetry.update();
             telemetry.update();
-            scTracker = new SimpleCoordinateTracker();
-            scTracker.setPositionAndDirectionDeg(Field.BLUE_POSITION1, 180.0);
-            tcTrack = new TickCountTracker();
-            tcTrack.initialize(scTracker, 0,0);
 
             DriveCommands Command = new DriveCommands();
-            Command.initializeForOpMode(this,hardwareMap, tcTrack,scTracker);
+            Command.initializeForOpMode(this,hardwareMap, Field.BLUE_POSITION1, 180.0);
             ODS = hardwareMap.opticalDistanceSensor.get("ods");
             odsReadingRaw = ODS.getRawLightDetected();                   //update raw value (This function now returns a value between 0 and 5 instead of 0 and 1 as seen in the video)
             odsReadingLinear = Math.pow(odsReadingRaw, -0.5);
