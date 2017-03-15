@@ -68,7 +68,7 @@ public class BlueAuto1 extends LinearOpMode{
 
         // calculate the drive to line distance plus 1/2 the separation between the beacons
         DirectionDistance lineDrive = Field.BLUE_WHEELS_LINE_POS
-                .added( Field.BEACON_BUTTON_OFFSET, 0.0)
+                .added( Field.BEACON_BUTTON_WIDTH, 0.0)
                 .subtract( drive.scTrack.coordinate)
                 .asDirectionDistance();
         // the drive command will stop when it finds the line so it should be about
