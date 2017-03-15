@@ -41,7 +41,7 @@ public class EvaluateColorSensor {
         {
             return eColorState.unknown;
         } else {
-            if ( FuzzyEqual( hsvValues[0], 5.0f, 5.0f ) || FuzzyEqual( hsvValues[0], 355.0f, 5.0f )) {
+            if ( FuzzyEqual( hsvValues[0], 5.0f, 8.0f ) || FuzzyEqual( hsvValues[0], 355.0f, 5.0f )) {
                 return eColorState.red;
             } else {
                 if ( FuzzyEqual( hsvValues[0], 230.5f, 9.5f) ) {
@@ -63,7 +63,7 @@ public class EvaluateColorSensor {
     }
 
     /** evaluate for specific color channel dominance */
-    static public boolean EvaluateColor( ColorSensor sensorRGB, eColorState checkColor )
+    static public boolean  EvaluateColor( ColorSensor sensorRGB, eColorState checkColor )
     {
         return ( checkColor == Evaluate( sensorRGB ) );
     }
