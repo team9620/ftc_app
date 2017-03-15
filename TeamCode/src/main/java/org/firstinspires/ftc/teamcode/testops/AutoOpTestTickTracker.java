@@ -10,9 +10,9 @@ import org.firstinspires.ftc.teamcode.fieldtracking.SimpleCoordinateTracker;
 import org.firstinspires.ftc.teamcode.fieldtracking.TickCountTracker;
 
 /**
- * ROUS
+ * Created by ROUS on 3/12/2017.
  */
-@Autonomous(name = "Auto : Tick Count Tracker", group = "Test")
+@Autonomous(name = "Tick Count Tracker", group = "Test")
 @Disabled
 public class AutoOpTestTickTracker extends LinearOpMode {
 

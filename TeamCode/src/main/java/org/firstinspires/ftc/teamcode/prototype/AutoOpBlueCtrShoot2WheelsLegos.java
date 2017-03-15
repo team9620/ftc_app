@@ -28,7 +28,7 @@ import org.firstinspires.ftc.teamcode.sensors.ODSSensor;
 //@Disabled
 public class AutoOpBlueCtrShoot2WheelsLegos extends LinearOpMode {
 
-    public static final String TAG = "AutoOp : Blue.Ctr.Shoot2.Wheels.Legos";
+    public static final String TAG = "Blue.Ctr.Shoot2.Wheels.Legos";
 
     public static final String TAG_INIT = "INIT";
 

@@ -30,7 +30,6 @@ public class SimpleCoordinateTracker {
         this.coordinate = new Vector2d(other.coordinate);
     }
 
-
     /**Format robot coordinate position and direction as a string*/
     public String formatAsString(){
         return String.format("%s -> %.08fd", this.coordinate.formatAsString(), Math.toDegrees(this.direction));
@@ -97,8 +96,7 @@ public class SimpleCoordinateTracker {
     }
 
     public SimpleCoordinateTracker moveOnCurentHeading(double distance){
-        DirectionDistance dd = new DirectionDistance(this.direction, distance);
-        this.coordinate.add(dd.asVector2d());
+        this.coordinate.add(DirectionDistance.CreateVector2dRad( this.direction, distance));
         return this;
     }
 
@@ -125,16 +123,15 @@ public class SimpleCoordinateTracker {
 
         // convert deflection angle to ccw radians
         double   radCCWDeflection = deflectionAngleLeft;
-        // calculate unit vector tangent to arc based on current robot direction.
-        Vector2d thisDir = Vector2d.UnitVectorRad(this.direction);
-        Vector2d radDir = thisDir.PerpendicularCCW();
-        // calculate center of circle with radius R
-        Vector2d arcCenter = radDir.multiplied(Math.abs(arcRadius));
-        // calculate new arc point as inverse of center vector rotated by ccw deflection angle
-        Vector2d newArcPoint = arcCenter.multiplied(-1.0).rotateByCCWAngleRad(radCCWDeflection);
 
-        // the new coordinate is the sum of current pos, arc center, and new radial point
-        this.coordinate.add(arcCenter).add(newArcPoint);
+        // calculate dx,dy by rotating the radial vector from 0,0
+        Vector2d dir = Vector2d.UnitVectorRad(this.direction);
+        Vector2d center = dir.PerpendicularCCW().multiplied(Math.abs(arcRadius));
+        Vector2d radial =  dir.PerpendicularCW().multiplied(Math.abs(arcRadius));
+        Vector2d newRadial = radial.rotatedByCCWAngleRad(radCCWDeflection);
+        Vector2d dxdy = Vector2d.Add(center,newRadial);
+        // new coordinate
+        this.coordinate.add( dxdy );
         // new direction = cur direction + ccwDeflection angle
         this.direction = Util.OptomizeAngleZero_TwoPi( this.direction + radCCWDeflection );
     }
@@ -153,16 +150,16 @@ public class SimpleCoordinateTracker {
 
         // convert deflection angle to ccw radians
         double   radCCWDeflection = -deflectionAngleRight;
-        // calculate unit vector tangent to arc based on current robot direction.
-        Vector2d thisDir = Vector2d.UnitVectorRad(this.direction);
-        Vector2d radDir = thisDir.PerpendicularCW();
-        // calculate center of circle with radius R
-        Vector2d arcCenter = radDir.multiplied(Math.abs(arcRadius));
-        // calculate new arc point as inverse of center vector rotated by ccw deflection angle
-        Vector2d newArcPoint = arcCenter.multiplied(-1.0).rotateByCCWAngleRad(radCCWDeflection);
 
-        // the new coordinate is the sum of current pos, arc center, and new radial point
-        this.coordinate.add(arcCenter).add(newArcPoint);
+        // calculate dx,dy by rotating the radial vector from 0,0
+        Vector2d dir = Vector2d.UnitVectorRad(this.direction);
+        Vector2d center = dir.PerpendicularCW().multiplied(Math.abs(arcRadius));
+        Vector2d radial =  dir.PerpendicularCCW().multiplied(Math.abs(arcRadius));
+        Vector2d newRadial = radial.rotatedByCCWAngleRad(radCCWDeflection);
+        Vector2d dxdy = Vector2d.Add(center,newRadial);
+
+        // new coordinate
+        this.coordinate.add( dxdy );
         // new direction = cur direction + ccwDeflection angle
         this.direction = Util.OptomizeAngleZero_TwoPi( this.direction + radCCWDeflection );
     }
