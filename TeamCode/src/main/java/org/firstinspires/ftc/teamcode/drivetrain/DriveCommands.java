@@ -391,16 +391,16 @@ public class DriveCommands {
                              double distInches,
                              double timeoutS) throws InterruptedException {
         if (opMode.opModeIsActive()) {
+
             EncoderDriveCore(speed, distInches, distInches, timeoutS);
             scTrack.moveOnCurentHeading(distInches);
 
-            Vector2d coordErr = Vector2d.Subtract(tcTrack.coordinate,scTrack.coordinate);
-            double angErr = Math.toDegrees(Util.OptomizeAngleNegPi_PosPi(tcTrack.dirRad-scTrack.direction));
-            String errText = String.format( "CE: %s, AE: %.04fd",coordErr.formatAsString(), angErr );
-
+            double dd = Vector2d.Subtract(tcTrack.coordinate,scTrack.coordinate).asDirectionDistance().distIn;
+            double ad = Math.toDegrees(Util.OptomizeAngleNegPi_PosPi(tcTrack.dirRad-scTrack.direction));
+            String diffText = String.format( "DD: %.04f\", AD: %.04fd",dd, ad );
             opMode.telemetry.addData("CMD", "DriveStraight %.04f\"",distInches);
-            opMode.telemetry.addData("ERR", errText );
-            RobotLog.ii("DriveStraight", errText );
+            opMode.telemetry.addData("Diff", diffText );
+            RobotLog.ii("DriveStraight", diffText );
 
             scTrack.setPositionAndDirection(tcTrack);
             opMode.sleep(Pause_Time);   // optional pause after each move
@@ -436,17 +436,21 @@ public class DriveCommands {
              * calculation to get the relative turn needed to make the
              * robot align with the center of the blue vortex
              * */
-            double deltaRad = Math.toRadians(dirDeg) - scTrack.direction;
-            double turnAngle = Math.toDegrees( Util.OptomizeAngleNegPi_PosPi( deltaRad ));
+            double deltaRad = Util.OptomizeAngleNegPi_PosPi(Math.toRadians(dirDeg) - scTrack.direction);
+            double turnAngle = Math.toDegrees( deltaRad );
             /**Turn to face the vortex*/
             if ( !Util.FuzzyZero(turnAngle, 0.5) ){
-                double dist = TurnCalc.Turn(Math.toDegrees(turnAngle));
-                EncoderDriveCore(speed, dist, -dist, timeoutS);
-                scTrack.turnRelativeDeg(turnAngle);
 
-                RobotLog.ii("EncoderTurnToDirectionDeg", "Error: %s, AE: %.04fd",
-                        Vector2d.Subtract(tcTrack.coordinate,scTrack.coordinate).formatAsString(),
-                        Math.toDegrees(tcTrack.dirRad-scTrack.direction));
+                double dist = TurnCalc.Turn(turnAngle);
+                EncoderDriveCore(speed, dist, -dist, timeoutS);
+                scTrack.turnRelativeRad(turnAngle);
+
+                double dd = Vector2d.Subtract(tcTrack.coordinate,scTrack.coordinate).asDirectionDistance().distIn;
+                double ad = Math.toDegrees(Util.OptomizeAngleNegPi_PosPi(tcTrack.dirRad-scTrack.direction));
+                String diffText = String.format( "DD: %.04f\", AD: %.04fd",dd, ad );
+                opMode.telemetry.addData("CMD", "EncoderTurnToDirectionDegrees %.04f\"",dirDeg);
+                opMode.telemetry.addData("Diff", diffText );
+                RobotLog.ii("EncoderTurnToDirectionDegrees", diffText );
 
                 scTrack.setPositionAndDirection(tcTrack);
 
@@ -465,13 +469,12 @@ public class DriveCommands {
 
             scTrack.turnRelativeDeg(turndeg);
 
-            Vector2d coordErr = Vector2d.Subtract(tcTrack.coordinate,scTrack.coordinate);
-            double angErr = Math.toDegrees(Util.OptomizeAngleNegPi_PosPi(tcTrack.dirRad-scTrack.direction));
-            String errText = String.format( "CE: %s, AE: %.04fd",coordErr.formatAsString(), angErr );
-
+            double dd = Vector2d.Subtract(tcTrack.coordinate,scTrack.coordinate).asDirectionDistance().distIn;
+            double ad = Math.toDegrees(Util.OptomizeAngleNegPi_PosPi(tcTrack.dirRad-scTrack.direction));
+            String diffText = String.format( "DD: %.04f\", AD: %.04fd",dd, ad );
             opMode.telemetry.addData("CMD", "TurnRelative %.04fd",turndeg);
-            opMode.telemetry.addData("ERR", errText );
-            RobotLog.ii("TurnRelative", errText );
+            opMode.telemetry.addData("Diff", diffText );
+            RobotLog.ii("TurnRelative", diffText );
 
             scTrack.setPositionAndDirection(tcTrack);
             opMode.sleep(Pause_Time);   // optional pause after each move
@@ -495,18 +498,16 @@ public class DriveCommands {
 
             double dist = TurnCalc.BreakTurnDeg(turndeg);
             EncoderDriveCore(speed, dist, 0.0, timeoutS);
+            scTrack.moveArcTurnRightDeg(TurnCalc.WheelSpace, turndeg);
 
             leftMotor.setZeroPowerBehavior(zpmOld);
 
-            scTrack.moveArcTurnRightDeg(TurnCalc.WheelSpace, turndeg);
-
-            Vector2d coordErr = Vector2d.Subtract(tcTrack.coordinate,scTrack.coordinate);
-            double angErr = Math.toDegrees(Util.OptomizeAngleNegPi_PosPi(tcTrack.dirRad-scTrack.direction));
-            String errText = String.format( "CE: %s, AE: %.04fd",coordErr.formatAsString(), angErr );
-
+            double dd = Vector2d.Subtract(tcTrack.coordinate,scTrack.coordinate).asDirectionDistance().distIn;
+            double ad = Math.toDegrees(Util.OptomizeAngleNegPi_PosPi(tcTrack.dirRad-scTrack.direction));
+            String diffText = String.format( "DD: %.04f\", AD: %.04fd",dd, ad );
             opMode.telemetry.addData("CMD", "BreakTurnRight %.04fd",turndeg);
-            opMode.telemetry.addData("ERR", errText );
-            RobotLog.ii("BreakTurnRight", errText );
+            opMode.telemetry.addData("Diff", diffText );
+            RobotLog.ii("BreakTurnRight", diffText );
 
             scTrack.setPositionAndDirection(tcTrack);
 
@@ -530,18 +531,16 @@ public class DriveCommands {
 
             double dist = TurnCalc.BreakTurnDeg(turndeg);
             EncoderDriveCore(speed, 0.0, dist, timeoutS);
+            scTrack.moveArcTurnLeftDeg(TurnCalc.WheelSpace, turndeg);
 
             leftMotor.setZeroPowerBehavior(zpmOld);
 
-            scTrack.moveArcTurnLeftDeg(TurnCalc.WheelSpace, turndeg);
-
-            Vector2d coordErr = Vector2d.Subtract(tcTrack.coordinate,scTrack.coordinate);
-            double angErr = Math.toDegrees(Util.OptomizeAngleNegPi_PosPi(tcTrack.dirRad-scTrack.direction));
-            String errText = String.format( "CE: %s, AE: %.04fd",coordErr.formatAsString(), angErr );
-
+            double dd = Vector2d.Subtract(tcTrack.coordinate,scTrack.coordinate).asDirectionDistance().distIn;
+            double ad = Math.toDegrees(Util.OptomizeAngleNegPi_PosPi(tcTrack.dirRad-scTrack.direction));
+            String diffText = String.format( "DD: %.04f\", AD: %.04fd",dd, ad );
             opMode.telemetry.addData("CMD", "BreakTurnLeft %.04fd",turndeg);
-            opMode.telemetry.addData("ERR", errText );
-            RobotLog.ii("BreakTurnLeft", errText );
+            opMode.telemetry.addData("Diff", diffText );
+            RobotLog.ii("BreakTurnLeft", diffText );
 
             scTrack.setPositionAndDirection(tcTrack);
 
@@ -813,11 +812,9 @@ public class DriveCommands {
             }
             tcTrack.updateTicks(leftMotor.getCurrentPosition(), rightMotor.getCurrentPosition());
             scTrack.setDirectionDeg(angle);
-            /**
             RobotLog.ii("DriveStraight", "Error: %s, AE: %.04fd",
                     Vector2d.Subtract(tcTrack.coordinate, scTrack.coordinate).formatAsString(),
                     Math.toDegrees(tcTrack.dirRad - scTrack.direction));
-             */
             scTrack.setPositionAndDirection(tcTrack);
             opMode.sleep(Pause_Time);   // optional pause after each move
         }
@@ -933,8 +930,7 @@ public class DriveCommands {
 
             odsReadingRaw = ODS.getRawLightDetected();                   //update raw value (This function now returns a value between 0 and 5 instead of 0 and 1 as seen in the video)
             odsReadingLinear = Math.pow(odsReadingRaw, -0.5);
-            double lightDetected = ODS.getLightDetected();
-            opMode.telemetry.addData("ODS", "Light: %.04f", lightDetected);
+            opMode.telemetry.addData("ODS", "Light: %.04f", odsReadingRaw);
             opMode.telemetry.update();
 
             // break mode will make sure we stop when we hit the line
@@ -954,11 +950,10 @@ public class DriveCommands {
                 // Display light levels
                 odsReadingRaw = ODS.getRawLightDetected();              //update raw value (This function now returns a value between 0 and 5 instead of 0 and 1 as seen in the video)
                 odsReadingLinear = Math.pow(odsReadingRaw, -0.5);
-                opMode.telemetry.addData("ODS", "Light: %.04f", lightDetected);
+                opMode.telemetry.addData("ODS", "Light: %.04f", odsReadingRaw);
                 opMode.telemetry.update();
 
-                lightDetected = ODS.getLightDetected();
-                if ( lightDetected >= 0.3 ) // this is just a guess could be anywhere above 0.4?
+                if ( odsReadingRaw >= 0.6 ) // this is just a guess could be anywhere above 0.4?
                 {
                     bFoundWhiteLine = true;
                     break;
@@ -979,7 +974,7 @@ public class DriveCommands {
             tcTrack.updateTicks(leftMotor.getCurrentPosition(),rightMotor.getCurrentPosition());
             scTrack.setPositionAndDirection(tcTrack);
 
-            opMode.telemetry.addData("ODS", "Light: %.04f", lightDetected);
+            opMode.telemetry.addData("ODS", "Light: %.04f", odsReadingRaw);
             if ( bFoundWhiteLine ) {
                 opMode.telemetry.addData("ODS", "Found White Line");
             }

@@ -95,7 +95,14 @@ public class Vector2d {
     }
 
     /**Returns a copy of self multiplied by factor*/
-    public Vector2d multiplied( double factor ){
+    public Vector2d multiply( double factor ) {
+        this.x *= factor;
+        this.y *= factor;
+        return this;
+    }
+
+    /**Returns a copy of self multiplied by factor*/
+    public Vector2d multiplied( double factor ) {
         return new Vector2d( this.x * factor, this.y * factor);
     }
 
@@ -214,8 +221,10 @@ public class Vector2d {
      * y' = y cos f + x sin f
      */
     public Vector2d rotateByCCWAngleRad(double ccwAngleRad){
-        double xp = this.x * Math.cos(ccwAngleRad) - this.y * Math.sin(ccwAngleRad);
-        double yp = this.y * Math.cos(ccwAngleRad) - this.x * Math.sin(ccwAngleRad);
+        double cs = Math.cos(ccwAngleRad);
+        double sn = Math.sin(ccwAngleRad);
+        double xp = x * cs - y * sn;
+        double yp = x * sn + y * cs;
         this.x = xp;
         this.y = yp;
         return this;

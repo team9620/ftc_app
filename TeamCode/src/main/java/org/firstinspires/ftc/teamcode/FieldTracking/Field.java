@@ -41,8 +41,7 @@ public class Field {
     public static double   NEAR_BEACON_OFFSET = 12.0;
     public static double   FAR_BEACON_OFFSET = 36.0;
     public static double   BEACON_PRESS_WALL_DIST = 10.57;
-    public static double   BEACON_BUTTON_OFFSET = 5.3/2.0; // Beacon center to button.
-
+    public static double   BEACON_BUTTON_WIDTH = 5.3; // Beacon buttons center to center.
 
     public static Vector2d BLUE_CENTER_VORTEX_XY = DirectionDistance.CreateVector2dDeg(45.0, 15.0);
     public static Vector2d BLUE_WHEELS_BEACON_XY = new Vector2d(+NEAR_BEACON_OFFSET, +FIELD_HALF_WIDTH_D);
