@@ -953,7 +953,7 @@ public class DriveCommands {
                 opMode.telemetry.addData("ODS", "Light: %.04f", odsReadingRaw);
                 opMode.telemetry.update();
 
-                if ( odsReadingRaw >= 0.6 ) // this is just a guess could be anywhere above 0.4?
+                if ( odsReadingRaw >= .8 ) // this is just a guess could be anywhere above 0.4?
                 {
                     bFoundWhiteLine = true;
                     break;
@@ -1155,7 +1155,7 @@ public class DriveCommands {
     public void BeaconEvalBlue(boolean Blue,boolean Red,double IN, double Out){
         if (Blue) {
             opMode.sleep(1000);
-            OdsDrive(5.3, 100);
+            ///OdsDrive(5.3, 100);
             opMode.telemetry.addData("Color", "BLUE");
             opMode.telemetry.addData("Red  ", sensorRGB.red());
             opMode.telemetry.addData("Blue  ", sensorRGB.blue());
@@ -1172,12 +1172,17 @@ public class DriveCommands {
             button.setPosition(Out);
             opMode.sleep(500);
             button.setPosition(IN);
-            opMode.stop();
+            //opMode.stop();
 
 //
                       } else if (Red) {
             opMode.sleep(1000);
-            OdsDrive(5.3, 100);
+            try {
+                DriveStraight(0.5, 5.3, 5.0);
+            } catch(InterruptedException e){
+
+            }
+            // (5.3, 100);
             opMode.telemetry.addData("Color", "RED");
             opMode.telemetry.addData("Red  ", sensorRGB.red());
             opMode.telemetry.addData("Blue  ", sensorRGB.blue());
@@ -1194,13 +1199,13 @@ public class DriveCommands {
             button.setPosition(Out);
             opMode.sleep(500);
             button.setPosition(IN);
-            opMode.stop();
+            ///opMode.stop();
 
                  } else {
-            odsReadingRaw2 = ODS.getRawLightDetected();                   //update raw value (This function now returns a value between 0 and 5 instead of 0 and 1 as seen in the video)
-            odsReadingLinear2 = Math.pow(odsReadingRaw2, -0.5);
-            rightMotor.setPower(TurnCalc.WallDistR(odsReadingLinear2));
-            leftMotor.setPower(TurnCalc.WallDistL(odsReadingLinear2));
+            //odsReadingRaw2 = ODS.getRawLightDetected();                   //update raw value (This function now returns a value between 0 and 5 instead of 0 and 1 as seen in the video)
+           // odsReadingLinear2 = Math.pow(odsReadingRaw2, -0.5);
+           // rightMotor.setPower(TurnCalc.WallDistR(odsReadingLinear2));
+            //leftMotor.setPower(TurnCalc.WallDistL(odsReadingLinear2));
             opMode.telemetry.addData(">", "Robot Heading = %d", gyro.getIntegratedZValue());
             opMode.telemetry.addData("Clear", sensorRGB.alpha());
             opMode.telemetry.addData("Red  ", sensorRGB.red());

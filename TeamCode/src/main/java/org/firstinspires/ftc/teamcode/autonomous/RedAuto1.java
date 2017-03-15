@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode.autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.robocol.Command;
 
 import org.firstinspires.ftc.teamcode.drivetrain.DriveCommands;
@@ -19,9 +21,10 @@ import org.firstinspires.ftc.teamcode.sensors.eColorState;
 /**
  * Created by ROUS on 3/11/2017.
  */
-@Autonomous(name="Blue.2.Beacon", group="AutoOp")
+
+@Autonomous(name="Red.2.Beacon", group="AutoOp")
 //@Disabled
-public class BlueAuto1 extends LinearOpMode{
+public class RedAuto1 extends LinearOpMode{
 
     public static final String TAG = "AutoOp : Red.2.Beacon";
 
@@ -39,7 +42,10 @@ public class BlueAuto1 extends LinearOpMode{
         /** Initialize DriveCommands*/
         sensorRGB = hardwareMap.colorSensor.get("color");
         DriveCommands drive = new DriveCommands();
-        drive.initializeForOpMode( this, hardwareMap, Field.BLUE_POSITION4, 135.0);
+        drive.initializeForOpMode( this, hardwareMap, Field.RED_POSITION4, 135.0);
+        // set initial direction, reversing the motor directions for red side
+        drive.rightMotor.setDirection(DcMotor.Direction.FORWARD);
+        drive.leftMotor.setDirection(DcMotor.Direction.REVERSE);
 
         /** Wait for the game to begin */
         telemetry.addData(">", "Press Play to start");
@@ -65,7 +71,7 @@ public class BlueAuto1 extends LinearOpMode{
         sleep(2000);
 
         // calculate the angle we need to turn based on target direction - current direction
-        double newdirection = 180.0-Math.toDegrees(drive.scTrack.direction);
+        double newdirection = 90.0-Math.toDegrees(drive.scTrack.direction);
         drive.BreakTurnLeft(0.2, newdirection, 5.0);
         telemetry.addData("SCTrack",drive.scTrack.formatAsString());
         telemetry.addData("TicTrack",drive.tcTrack.formatAsString());
@@ -73,8 +79,8 @@ public class BlueAuto1 extends LinearOpMode{
         sleep(2000);
 
         // calculate the drive to line distance plus 1/2 the separation between the beacons
-        DirectionDistance lineDrive = Field.BLUE_WHEELS_LINE_POS
-                .added( Field.BEACON_BUTTON_WIDTH, 0.0)
+        DirectionDistance gearsLineDrive = Field.RED_GEARS_LINE_POS
+                .added(0.0, -Field.BEACON_BUTTON_WIDTH)
                 .subtract( drive.scTrack.coordinate)
                 .asDirectionDistance();
         // the drive command will stop when it finds the line so it should be about
@@ -88,51 +94,23 @@ public class BlueAuto1 extends LinearOpMode{
         telemetry.update();
         sleep(2000);
         if ( bFoundWheelsWhiteLine ){
-           // while (opModeIsActive()) {
+            // while (opModeIsActive()) {
 
-                Boolean Blue = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.blue);
-                Boolean Red = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.red);
+            Boolean Blue = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.blue);
+            Boolean Red = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.red);
 
-                sleep(250);
+            sleep(250);
 
-                drive.BeaconEvalBlue(Blue, Red, .3, .9);
-            //}
-            //drive.BeaconEvalBlue(colorSensor.isBlue(),colorSensor.isRed(),.6,.9);
-           // colorSensor.getColor(); // this updates the internal color
-           // colorSensor.addTelemetryData(this); // for debugging
-           // telemetry.update();
-            // this tests color we just got to see if it's blue
-           // if ( !colorSensor.isBlue() ) { // if it's not blue drive forward 5.3 inches
-          //      double driveToOtherSideOfBeacon = 5.3;
-          //      drive.DriveStraight(0.1,driveToOtherSideOfBeacon, 0.5);
-          //  }
-          //  // recheck color and press if it's blue
-          //  colorSensor.getColor(); // this updates the internal color
-        //    colorSensor.addTelemetryData(this); // for debugging
-         //   telemetry.update();
-         ///   if ( colorSensor.isBlue() ){ // press for blue :)
-         //       double IN = .65;
-         //       double OUT = .9;
-         ///      drive.button.setPosition(OUT);
-           //     sleep(500);
-          //      drive.button.setPosition(HALF);
-           //     sleep(125);
-          //      drive.button.setPosition(OUT);
-           //     sleep(500);
-           //     drive.button.setPosition(HALF);
-           //     sleep(125);
-          //      drive.button.setPosition(OUT);
-          //      sleep(500);
-           //     drive.button.setPosition(IN);
-            //}
+            drive.BeaconEvalBlue(Blue, Red, .3, .9);
+
         }
 // calculate the drive to line distance plus 1/2 the separation between the beacons
         //drive to lego
-        DirectionDistance legoLineApproach = Field.BLUE_LEGOS_LINE_POS
-                .added( Field.BEACON_BUTTON_WIDTH, 0.0)
+        DirectionDistance toolsLineApproach = Field.RED_TOOLS_LINE_POS
+                .added(0.0, -Field.BEACON_BUTTON_WIDTH)
                 .subtract( drive.scTrack.coordinate)
                 .asDirectionDistance();
-        drive.DriveStraight(0.3, legoLineApproach.distIn, 5.0);
+        drive.DriveStraight(0.3, toolsLineApproach.distIn, 5.0);
         // the drive command will stop when it finds the line so it should be about
         // 3 inches short of the requested distance.
         boolean bFoundLegoWhiteLine = drive.OdsDriveStraightToWhiteLine(0.1, 12, 5.0);
