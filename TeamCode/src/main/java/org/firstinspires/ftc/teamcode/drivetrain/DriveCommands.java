@@ -17,6 +17,7 @@ import org.firstinspires.ftc.teamcode.fieldtracking.TickCountTracker;
 import org.firstinspires.ftc.teamcode.fieldtracking.TurnCalc;
 import org.firstinspires.ftc.teamcode.fieldtracking.Util;
 import org.firstinspires.ftc.teamcode.fieldtracking.Vector2d;
+import org.firstinspires.ftc.teamcode.sensors.EvaluateColorSensor;
 
 
 public class DriveCommands {
@@ -46,7 +47,7 @@ public class DriveCommands {
     public Servo servo = null;
     public Servo button=null;
     public static final double COUNTS_PER_MOTOR_REV = 1680;    // eg: TETRIX Motor Encoder
-    public static final double DRIVE_GEAR_REDUCTION = .625;     // This is < 1.0 if geared UP
+    public static final double DRIVE_GEAR_REDUCTION = .625;     // This should be 16:24
     public static final double WHEEL_DIAMETER_INCHES = 4.0;     // For figuring circumference
     public static final double Pi = 3.141592653f;
     public static final double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
@@ -329,12 +330,12 @@ public class DriveCommands {
                     // of the requested speed.
                     opMode.telemetry.addData("MPR", "CV=%.04f", maxProgressRatio);
                     if ( maxProgressRatio < 0.25 ){ /**ramp power up from 10% to 100%*/
-                        powerRamp = 0.1 + 0.9 * (maxProgressRatio/0.25);
+                        powerRamp = 0.2 + 0.8 * (maxProgressRatio/0.25);
                     } else {
                         if ( maxProgressRatio < 0.75 ){ /**progress between 25% and 75% - hold powerRamp at 100%*/
                             powerRamp = 1.0;
                         } else { /**ramp power down from 100% to 10%*/
-                            powerRamp = 1.0 - 0.9 * ((maxProgressRatio-0.75)/0.25);
+                            powerRamp = 1.0 - 0.8 * ((maxProgressRatio-0.75)/0.25);
                         }
                     }
                     // calculate current speed based on power ramp
@@ -493,14 +494,14 @@ public class DriveCommands {
                               double timeoutS) throws InterruptedException {
         if (opMode.opModeIsActive()) {
 
-            DcMotor.ZeroPowerBehavior zpmOld = leftMotor.getZeroPowerBehavior();
-            leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+            DcMotor.ZeroPowerBehavior zpmOld = rightMotor.getZeroPowerBehavior();
+            rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
             double dist = TurnCalc.BreakTurnDeg(turndeg);
             EncoderDriveCore(speed, dist, 0.0, timeoutS);
             scTrack.moveArcTurnRightDeg(TurnCalc.WheelSpace, turndeg);
 
-            leftMotor.setZeroPowerBehavior(zpmOld);
+            rightMotor.setZeroPowerBehavior(zpmOld);
 
             double dd = Vector2d.Subtract(tcTrack.coordinate,scTrack.coordinate).asDirectionDistance().distIn;
             double ad = Math.toDegrees(Util.OptomizeAngleNegPi_PosPi(tcTrack.dirRad-scTrack.direction));
@@ -1098,7 +1099,7 @@ public class DriveCommands {
                 opMode.telemetry.addData("0 ODS Raw", odsReadingRaw);
                 opMode.telemetry.addData("1 ODS linear", odsReadingLinear);
 
-                //opMode.telemetry.addData("Clear", sensorRGB.alpha());
+                // opMode.telemetry.addData("Clear", sensorRGB.alpha());
                 // opMode.telemetry.addData("Red  ", sensorRGB.red());
                 // opMode. telemetry.addData("Green", sensorRGB.green());
                 //opMode. telemetry.addData("Blue ", sensorRGB.blue());
@@ -1152,10 +1153,11 @@ public class DriveCommands {
         opMode.sleep(Pause_Time);
 
     }
+
     public void BeaconEvalBlue(boolean Blue,boolean Red,double IN, double Out){
+
         if (Blue) {
-            opMode.sleep(1000);
-            ///OdsDrive(5.3, 100);
+            //opMode.sleep(1000);
             opMode.telemetry.addData("Color", "BLUE");
             opMode.telemetry.addData("Red  ", sensorRGB.red());
             opMode.telemetry.addData("Blue  ", sensorRGB.blue());
@@ -1172,17 +1174,12 @@ public class DriveCommands {
             button.setPosition(Out);
             opMode.sleep(500);
             button.setPosition(IN);
-            //opMode.stop();
-
-//
-                      } else if (Red) {
-            opMode.sleep(1000);
+        } else if (Red) {
+            //opMode.sleep(1000);
             try {
-                DriveStraight(0.5, 5.3, 5.0);
-            } catch(InterruptedException e){
+                DriveStraight(0.4, 5.3, 5.0);
+            } catch(InterruptedException e){ }
 
-            }
-            // (5.3, 100);
             opMode.telemetry.addData("Color", "RED");
             opMode.telemetry.addData("Red  ", sensorRGB.red());
             opMode.telemetry.addData("Blue  ", sensorRGB.blue());
@@ -1199,28 +1196,80 @@ public class DriveCommands {
             button.setPosition(Out);
             opMode.sleep(500);
             button.setPosition(IN);
-            ///opMode.stop();
 
-                 } else {
-            //odsReadingRaw2 = ODS.getRawLightDetected();                   //update raw value (This function now returns a value between 0 and 5 instead of 0 and 1 as seen in the video)
-           // odsReadingLinear2 = Math.pow(odsReadingRaw2, -0.5);
-           // rightMotor.setPower(TurnCalc.WallDistR(odsReadingLinear2));
-            //leftMotor.setPower(TurnCalc.WallDistL(odsReadingLinear2));
+        } else {
             opMode.telemetry.addData(">", "Robot Heading = %d", gyro.getIntegratedZValue());
             opMode.telemetry.addData("Clear", sensorRGB.alpha());
             opMode.telemetry.addData("Red  ", sensorRGB.red());
+            opMode.telemetry.addData("Green  ", sensorRGB.green());
+            opMode.telemetry.addData("Blue  ", sensorRGB.blue());
+            opMode.telemetry.addData("Eval", EvaluateColorSensor.FormatAsString(EvaluateColorSensor.Evaluate(sensorRGB)));
+            opMode.telemetry.addData("ODS raw", odsReadingRaw2);
+            opMode.telemetry.addData("ODS linear", odsReadingLinear2);
+            opMode.telemetry.update();
+        }
+    }
+
+    public void BeaconEvalRed(boolean Blue,boolean Red,double IN, double Out){
+        if (Red) {
+
+            //opMode.sleep(1000);
+            opMode.telemetry.addData("Color", "BLUE");
             opMode.telemetry.addData("Red  ", sensorRGB.red());
-            opMode.telemetry.addData("1 ODS linear", odsReadingLinear2);
+            opMode.telemetry.addData("Blue  ", sensorRGB.blue());
+            opMode.telemetry.update();
+            opMode.sleep(125);
+            button.setPosition(Out);
+            opMode.sleep(500);
+            button.setPosition(IN);
+            opMode.sleep(125);
+            button.setPosition(Out);
+            opMode.sleep(500);
+            button.setPosition(IN);
+            opMode.sleep(125);
+            button.setPosition(Out);
+            opMode.sleep(500);
+            button.setPosition(IN);
+
+        } else if (Blue) {
+
+            //opMode.sleep(1000);
+            try {
+                DriveStraight(0.4, -5.3, 5.0);
+            } catch(InterruptedException e){ }
+
+            opMode.telemetry.addData("Color", "RED");
+            opMode.telemetry.addData("Red  ", sensorRGB.red());
+            opMode.telemetry.addData("Blue  ", sensorRGB.blue());
+            opMode.telemetry.update();
+            opMode.sleep(125);
+            button.setPosition(Out);
+            opMode.sleep(500);
+            button.setPosition(IN);
+            opMode.sleep(125);
+            button.setPosition(Out);
+            opMode.sleep(500);
+            button.setPosition(IN);
+            opMode.sleep(125);
+            button.setPosition(Out);
+            opMode.sleep(500);
+            button.setPosition(IN);
+
+        } else {
+
+            opMode.telemetry.addData(">", "Robot Heading = %d", gyro.getIntegratedZValue());
+            opMode.telemetry.addData("Eval", EvaluateColorSensor.FormatAsString(EvaluateColorSensor.Evaluate(sensorRGB)));
+            opMode.telemetry.addData("Clear", sensorRGB.alpha());
+            opMode.telemetry.addData("Red  ", sensorRGB.red());
+            opMode.telemetry.addData("Green  ", sensorRGB.green());
+            opMode.telemetry.addData("Blue  ", sensorRGB.blue());
+            opMode.telemetry.addData("ODS raw", odsReadingRaw2);
+            opMode.telemetry.addData("ODS linear", odsReadingLinear2);
             opMode.telemetry.update();
 
-
-
-
-             }
-
-
-
+        }
     }
+
 
 
     /**

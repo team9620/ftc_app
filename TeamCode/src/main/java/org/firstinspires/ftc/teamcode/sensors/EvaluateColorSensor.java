@@ -13,6 +13,16 @@ public class EvaluateColorSensor {
 
     static private int colorThreshold = 32; /** color comparrison value in range of 1 to 128 */
 
+    static public String FormatAsString( eColorState e ) {
+        switch( e )
+        {
+            case red : { return "[Red]"; }
+            case green : { return "[Green]"; }
+            case blue : { return "[Blue]"; }
+            default : { return "[Unknown]"; }
+        }
+    }
+
     static boolean FuzzyEqual( float v1, float v2, float tol ) {
         float delta = Math.abs(v2 - v1);
         return ( delta <= tol );

@@ -4,16 +4,10 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.robocol.Command;
 
 import org.firstinspires.ftc.teamcode.drivetrain.DriveCommands;
 import org.firstinspires.ftc.teamcode.fieldtracking.DirectionDistance;
 import org.firstinspires.ftc.teamcode.fieldtracking.Field;
-import org.firstinspires.ftc.teamcode.fieldtracking.SimpleCoordinateTracker;
-import org.firstinspires.ftc.teamcode.fieldtracking.TickCountTracker;
-import org.firstinspires.ftc.teamcode.fieldtracking.Vector2d;
-import org.firstinspires.ftc.teamcode.prototype.Drive;
 import org.firstinspires.ftc.teamcode.sensors.ColorSensor;
 import org.firstinspires.ftc.teamcode.sensors.EvaluateColorSensor;
 import org.firstinspires.ftc.teamcode.sensors.eColorState;
@@ -26,7 +20,7 @@ import org.firstinspires.ftc.teamcode.sensors.eColorState;
 //@Disabled
 public class RedAuto1 extends LinearOpMode{
 
-    public static final String TAG = "AutoOp : Red.2.Beacon";
+    public static final String TAG = "Red.2.Beacon";
 
     com.qualcomm.robotcore.hardware.ColorSensor sensorRGB;
 
@@ -44,8 +38,17 @@ public class RedAuto1 extends LinearOpMode{
         DriveCommands drive = new DriveCommands();
         drive.initializeForOpMode( this, hardwareMap, Field.RED_POSITION4, 135.0);
         // set initial direction, reversing the motor directions for red side
-        drive.rightMotor.setDirection(DcMotor.Direction.FORWARD);
-        drive.leftMotor.setDirection(DcMotor.Direction.REVERSE);
+        {
+            /**Swap motor direction so that it sees the other end as front*/
+            drive.rightMotor.setDirection(DcMotor.Direction.FORWARD);
+            drive.leftMotor.setDirection(DcMotor.Direction.REVERSE);
+            /**Now swap the motors because the opposite sides are left and right*/
+            DcMotor leftMotor = drive.leftMotor;
+            DcMotor rightMotor = drive.rightMotor;
+            drive.rightMotor = leftMotor;
+            drive.leftMotor = rightMotor;
+        }
+        telemetry.addData("SCTrack",drive.scTrack.formatAsString());
 
         /** Wait for the game to begin */
         telemetry.addData(">", "Press Play to start");
@@ -61,22 +64,16 @@ public class RedAuto1 extends LinearOpMode{
         /**
          * calculate drive along x-axis 18 inches forward
          */
-        //DirectionDistance move1 = new DirectionDistance( 135, 46.5);
-        //Vector2d ShootPos = scTrack.CalculatePosition(move1); // calculates relative to current position
-        drive.DriveStraight(0.5, 46.5, 10.0);
-        //drive.EncoderDrive(0.3, move1, 6.0);
+        DirectionDistance move1 = new DirectionDistance( 135, 46.5);
+        drive.DriveStraight(0.5, move1.distIn, 10.0);
         telemetry.addData("SCTrack",drive.scTrack.formatAsString());
-        telemetry.addData("TicTrack",drive.tcTrack.formatAsString());
         telemetry.update();
-        sleep(2000);
 
         // calculate the angle we need to turn based on target direction - current direction
-        double newdirection = 90.0-Math.toDegrees(drive.scTrack.direction);
-        drive.BreakTurnLeft(0.2, newdirection, 5.0);
+        double newdirection = Math.abs(90.0-Math.toDegrees(drive.scTrack.direction));
+        drive.BreakTurnRight(0.2, newdirection, 5.0);
         telemetry.addData("SCTrack",drive.scTrack.formatAsString());
-        telemetry.addData("TicTrack",drive.tcTrack.formatAsString());
         telemetry.update();
-        sleep(2000);
 
         // calculate the drive to line distance plus 1/2 the separation between the beacons
         DirectionDistance gearsLineDrive = Field.RED_GEARS_LINE_POS
@@ -85,26 +82,25 @@ public class RedAuto1 extends LinearOpMode{
                 .asDirectionDistance();
         // the drive command will stop when it finds the line so it should be about
         // 3 inches short of the requested distance.
-        boolean bFoundWheelsWhiteLine = drive.OdsDriveStraightToWhiteLine(0.1, 24, 5.0);
+        boolean bFoundGearsWhiteLine = drive.OdsDriveStraightToWhiteLine(0.1, 24, 5.0);
         telemetry.addData("SCTrack",drive.scTrack.formatAsString());
-        telemetry.addData("TicTrack",drive.tcTrack.formatAsString());
-        telemetry.addData("ODS", bFoundWheelsWhiteLine ? "true" : "false" );
-        colorSensor.getColor(); // for debugging
-        colorSensor.addTelemetryData(this); // for debugging
+        telemetry.addData("ODS", bFoundGearsWhiteLine ? "true" : "false" );
         telemetry.update();
-        sleep(2000);
-        if ( bFoundWheelsWhiteLine ){
-            // while (opModeIsActive()) {
 
+        if ( bFoundGearsWhiteLine ){
+
+            sleep(1000);
+            idle();
+            sleep(1000);
+            telemetry.addData("EVL", EvaluateColorSensor.FormatAsString(EvaluateColorSensor.Evaluate(sensorRGB)));
+            telemetry.update();
             Boolean Blue = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.blue);
             Boolean Red = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.red);
-
-            sleep(250);
-
-            drive.BeaconEvalBlue(Blue, Red, .3, .9);
+            drive.BeaconEvalRed(Blue, Red, .3, .9);
 
         }
-// calculate the drive to line distance plus 1/2 the separation between the beacons
+
+        // calculate the drive to line distance plus 1/2 the separation between the beacons
         //drive to lego
         DirectionDistance toolsLineApproach = Field.RED_TOOLS_LINE_POS
                 .added(0.0, -Field.BEACON_BUTTON_WIDTH)
@@ -113,21 +109,22 @@ public class RedAuto1 extends LinearOpMode{
         drive.DriveStraight(0.3, toolsLineApproach.distIn, 5.0);
         // the drive command will stop when it finds the line so it should be about
         // 3 inches short of the requested distance.
-        boolean bFoundLegoWhiteLine = drive.OdsDriveStraightToWhiteLine(0.1, 12, 5.0);
+        boolean bFoundToolsWhiteLine = drive.OdsDriveStraightToWhiteLine(0.1, 16, 5.0);
         telemetry.addData("SCTrack",drive.scTrack.formatAsString());
-        telemetry.addData("TicTrack",drive.tcTrack.formatAsString());
-        telemetry.addData("ODS", bFoundLegoWhiteLine ? "true" : "false" );
-        colorSensor.getColor(); // for debugging
-        colorSensor.addTelemetryData(this); // for debugging
+        telemetry.addData("ODS", bFoundToolsWhiteLine ? "true" : "false" );
         telemetry.update();
-        sleep(2000);
-        if ( bFoundLegoWhiteLine ){
+
+        if ( bFoundToolsWhiteLine ){
+
+            sleep(1000);
+            idle();
+            sleep(1000);
+            telemetry.addData("EVL", EvaluateColorSensor.FormatAsString(EvaluateColorSensor.Evaluate(sensorRGB)));
+            telemetry.update();
             Boolean Blue = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.blue);
             Boolean Red = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.red);
+            drive.BeaconEvalRed(Blue, Red, .3, .9);
 
-            sleep(250);
-
-            drive.BeaconEvalBlue(Blue, Red, .3, .9);
         }
 
         /** if there's any time left loop */
