@@ -125,6 +125,7 @@ public class ColorSensor extends EvaluateColorSensor {
     public void addTelemetryData( LinearOpMode op ) {
         op.telemetry.addData(TAG, "Color Sensor is Active");
         op.telemetry.addData("LED", bLedOn ? "On" : "Off");
+        op.telemetry.addData("Eval", EvaluateColorSensor.FormatAsString(EvaluateColorSensor.Evaluate(sensorRGB)));
         op.telemetry.addData("Clear", sensorRGB.alpha());
         op.telemetry.addData("Red  ", sensorRGB.red());
         op.telemetry.addData("Green", sensorRGB.green());

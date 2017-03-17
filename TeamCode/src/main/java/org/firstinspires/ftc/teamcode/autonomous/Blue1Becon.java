@@ -28,7 +28,7 @@ import org.firstinspires.ftc.teamcode.sensors.eColorState;
 /**
  * Created by Connor on 2/9/2017.
  */
-@Autonomous(name="AutoBeaconBlueODS", group="Pushbot")
+@Autonomous(name="Connors.Blue.1.Beacon", group="Connor")
 //@Disabled
 public class Blue1Becon extends LinearOpMode {
 

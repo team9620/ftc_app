@@ -23,10 +23,9 @@ import org.firstinspires.ftc.teamcode.sensors.eColorState;
 //@Disabled
 public class BlueAuto1 extends LinearOpMode{
 
-    public static final String TAG = "AutoOp : Red.2.Beacon";
+    public static final String TAG = "Blue.2.Beacon";
 
     com.qualcomm.robotcore.hardware.ColorSensor sensorRGB;
-
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -40,6 +39,7 @@ public class BlueAuto1 extends LinearOpMode{
         sensorRGB = hardwareMap.colorSensor.get("color");
         DriveCommands drive = new DriveCommands();
         drive.initializeForOpMode( this, hardwareMap, Field.BLUE_POSITION4, 135.0);
+        telemetry.addData("SCTrack",drive.scTrack.formatAsString());
 
         /** Wait for the game to begin */
         telemetry.addData(">", "Press Play to start");
@@ -60,17 +60,13 @@ public class BlueAuto1 extends LinearOpMode{
         drive.DriveStraight(0.5, 46.5, 10.0);
         //drive.EncoderDrive(0.3, move1, 6.0);
         telemetry.addData("SCTrack",drive.scTrack.formatAsString());
-        telemetry.addData("TicTrack",drive.tcTrack.formatAsString());
         telemetry.update();
-        sleep(2000);
 
         // calculate the angle we need to turn based on target direction - current direction
         double newdirection = 180.0-Math.toDegrees(drive.scTrack.direction);
         drive.BreakTurnLeft(0.2, newdirection, 5.0);
         telemetry.addData("SCTrack",drive.scTrack.formatAsString());
-        telemetry.addData("TicTrack",drive.tcTrack.formatAsString());
         telemetry.update();
-        sleep(2000);
 
         // calculate the drive to line distance plus 1/2 the separation between the beacons
         DirectionDistance lineDrive = Field.BLUE_WHEELS_LINE_POS
@@ -81,52 +77,23 @@ public class BlueAuto1 extends LinearOpMode{
         // 3 inches short of the requested distance.
         boolean bFoundWheelsWhiteLine = drive.OdsDriveStraightToWhiteLine(0.1, 24, 5.0);
         telemetry.addData("SCTrack",drive.scTrack.formatAsString());
-        telemetry.addData("TicTrack",drive.tcTrack.formatAsString());
         telemetry.addData("ODS", bFoundWheelsWhiteLine ? "true" : "false" );
-        colorSensor.getColor(); // for debugging
-        colorSensor.addTelemetryData(this); // for debugging
         telemetry.update();
-        sleep(2000);
+
         if ( bFoundWheelsWhiteLine ){
-           // while (opModeIsActive()) {
 
-                Boolean Blue = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.blue);
-                Boolean Red = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.red);
+            sleep(1000);
+            idle();
+            sleep(1000);
+            telemetry.addData("EVAL", EvaluateColorSensor.FormatAsString(EvaluateColorSensor.Evaluate(sensorRGB)));
+            telemetry.update();
+            Boolean Blue = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.blue);
+            Boolean Red = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.red);
+            drive.BeaconEvalBlue(Blue, Red, .3, .9);
 
-                sleep(250);
-
-                drive.BeaconEvalBlue(Blue, Red, .3, .9);
-            //}
-            //drive.BeaconEvalBlue(colorSensor.isBlue(),colorSensor.isRed(),.6,.9);
-           // colorSensor.getColor(); // this updates the internal color
-           // colorSensor.addTelemetryData(this); // for debugging
-           // telemetry.update();
-            // this tests color we just got to see if it's blue
-           // if ( !colorSensor.isBlue() ) { // if it's not blue drive forward 5.3 inches
-          //      double driveToOtherSideOfBeacon = 5.3;
-          //      drive.DriveStraight(0.1,driveToOtherSideOfBeacon, 0.5);
-          //  }
-          //  // recheck color and press if it's blue
-          //  colorSensor.getColor(); // this updates the internal color
-        //    colorSensor.addTelemetryData(this); // for debugging
-         //   telemetry.update();
-         ///   if ( colorSensor.isBlue() ){ // press for blue :)
-         //       double IN = .65;
-         //       double OUT = .9;
-         ///      drive.button.setPosition(OUT);
-           //     sleep(500);
-          //      drive.button.setPosition(HALF);
-           //     sleep(125);
-          //      drive.button.setPosition(OUT);
-           //     sleep(500);
-           //     drive.button.setPosition(HALF);
-           //     sleep(125);
-          //      drive.button.setPosition(OUT);
-          //      sleep(500);
-           //     drive.button.setPosition(IN);
-            //}
         }
-// calculate the drive to line distance plus 1/2 the separation between the beacons
+
+        // calculate the drive to line distance plus 1/2 the separation between the beacons
         //drive to lego
         DirectionDistance legoLineApproach = Field.BLUE_LEGOS_LINE_POS
                 .added( Field.BEACON_BUTTON_WIDTH, 0.0)
@@ -137,26 +104,27 @@ public class BlueAuto1 extends LinearOpMode{
         // 3 inches short of the requested distance.
         boolean bFoundLegoWhiteLine = drive.OdsDriveStraightToWhiteLine(0.1, 12, 5.0);
         telemetry.addData("SCTrack",drive.scTrack.formatAsString());
-        telemetry.addData("TicTrack",drive.tcTrack.formatAsString());
         telemetry.addData("ODS", bFoundLegoWhiteLine ? "true" : "false" );
-        colorSensor.getColor(); // for debugging
-        colorSensor.addTelemetryData(this); // for debugging
         telemetry.update();
-        sleep(2000);
+
         if ( bFoundLegoWhiteLine ){
+
+            sleep(1000);
+            idle();
+            sleep(1000);
+            telemetry.addData("EVAL", EvaluateColorSensor.FormatAsString(EvaluateColorSensor.Evaluate(sensorRGB)));
+            telemetry.update();
             Boolean Blue = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.blue);
             Boolean Red = EvaluateColorSensor.EvaluateColor(sensorRGB, eColorState.red);
-
-            sleep(250);
-
             drive.BeaconEvalBlue(Blue, Red, .3, .9);
+
         }
 
         /** if there's any time left loop */
         while (opModeIsActive()) {
             // just updating telemetry from sensors
             idle();
-            sleep(5000);
+            sleep(1000);
         }
 
     }

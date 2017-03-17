@@ -16,11 +16,11 @@ import org.firstinspires.ftc.teamcode.sensors.ColorSensor;
  * Created by ROUS on 3/11/2017.
  */
 
-@Autonomous
+@Autonomous(name="Connors.Red.1.Beacon", group="Connor")
 //@Disabled
 public class Red1Beacon extends LinearOpMode{
 
-    public static final String TAG = "AutoOp : Red.Auto1";
+    public static final String TAG = "Connors.Red.1.Beacon";
     public static final String TAG_INIT = "INIT";
 
     @Override
@@ -56,7 +56,6 @@ public class Red1Beacon extends LinearOpMode{
         telemetry.addData("SCTrack",drive.scTrack.formatAsString());
         telemetry.addData("TicTrack",drive.tcTrack.formatAsString());
         telemetry.update();
-        sleep(2000);
 
         // calculate the angle we need to turn based on target direction - current direction
         double newdirection = 180.0-Math.toDegrees(drive.scTrack.direction);
