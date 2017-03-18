@@ -44,7 +44,7 @@ public class Telop1Driver extends LinearOpMode {
         // boolean AButtonPreviousState = false;
         double UP = .3;
         double DOWN = .9;
-        double IN = .46;
+        double IN = .3;
         double OUT = .9;
 
 

@@ -20,7 +20,7 @@ import org.firstinspires.ftc.teamcode.sensors.EvaluateColorSensor;
     public class TeleopDrive extends LinearOpMode {
     // Use a Pushbot's hardware
     ModernRoboticsI2cGyro gyro = null;
-    ColorSensor sensorRGB;
+    //ColorSensor sensorRGB;
     @Override
     public void runOpMode() throws InterruptedException {
         ROUSAutoHardware_WithServos robot = new ROUSAutoHardware_WithServos();
@@ -35,7 +35,7 @@ import org.firstinspires.ftc.teamcode.sensors.EvaluateColorSensor;
         // boolean AButtonPreviousState = false;
         double UP = .3;
         double DOWN = .9;
-        double IN = .65;
+        double IN = .3;
         double OUT = .9;
         // double Aim;
 
@@ -120,8 +120,8 @@ import org.firstinspires.ftc.teamcode.sensors.EvaluateColorSensor;
                 robot.button.setPosition(OUT);
             } else {
                 robot.button.setPosition(IN);
-                telemetry.addData("Color Evaluate", EvaluateColorSensor.Evaluate(sensorRGB));
-                telemetry.update();
+                //telemetry.addData("Color Evaluate", EvaluateColorSensor.Evaluate(sensorRGB));
+                //telemetry.update();
 
                 if (gamepad2.left_bumper) {
                    // robot.leftshooter.setPower(-1);

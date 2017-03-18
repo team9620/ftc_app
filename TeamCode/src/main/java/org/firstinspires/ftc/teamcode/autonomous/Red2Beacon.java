@@ -18,7 +18,7 @@ import org.firstinspires.ftc.teamcode.sensors.eColorState;
 
 @Autonomous(name="Red.2.Beacon", group="AutoOp")
 //@Disabled
-public class RedAuto1 extends LinearOpMode{
+public class Red2Beacon extends LinearOpMode{
 
     public static final String TAG = "Red.2.Beacon";
 

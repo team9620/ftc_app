@@ -58,6 +58,11 @@ public class DriveCommands {
     public static final long Pause_Time = 50;
     double odsReadingRaw;
     double odsReadingRaw2;
+    static public double BUTTON_IN = 0.3;
+    static public double BUTTON_OUT = 0.9;
+    static public double FLIPPER_UP = 0.3;
+    static public double FLIPPER_DOWN = 0.9;
+
 
     // odsReadingRaw to the power of (-0.5)
     static double odsReadingLinear;
@@ -151,6 +156,14 @@ public class DriveCommands {
             opMode.telemetry.addData("Encoders","FAIL!@ L:%7d R:%7d", encoderLeft, encoderRight );
         }
         opMode.telemetry.update();
+
+        //The following lines are to intialize the shooter control
+        button.setPosition(BUTTON_IN);
+        servo.setPosition(FLIPPER_DOWN);
+        opMode.sleep(1000);
+        leftshooter.setPower(0);
+        rightshooter.setPower(0);
+        Intake.setPower(0);
 
         /**Initialize TickCountTracker with SimpleCoordinateTracker and current motor ticks*/
         opMode.telemetry.addData("Status", "Init TickCountTracker");
@@ -419,7 +432,7 @@ public class DriveCommands {
         double turnAngle = Math.toDegrees( Util.OptomizeAngleNegPi_PosPi( deltaRad ));
         //Turn to direction
         if ( !Util.FuzzyZero(turnAngle, 0.5) ){
-            TurnRelative( speed, Math.toDegrees(turnAngle), timeoutS );
+            TurnRelative( speed,turnAngle, timeoutS );
         }
         //drive on heading
         if (!Util.FuzzyZero(dd.distIn, 0.1) ){
