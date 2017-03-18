@@ -30,7 +30,7 @@ import org.firstinspires.ftc.teamcode.sensors.eColorState;
  */
 @Autonomous(name="Connors.Blue.1.Beacon", group="Connor")
 //@Disabled
-public class Blue1Becon extends LinearOpMode {
+public class ConnorsBlue1Beacon extends LinearOpMode {
 
     /* Declare OpMode members. */
 
